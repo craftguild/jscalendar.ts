@@ -281,3 +281,15 @@ and extend the validation/export behavior in your own application.
 - RFC 7529: Non-Gregorian recurrence rules used by JSCalendar (rscale).
 - Time zone identifiers: IANA Time Zone Database (tzdata), using Area/Location IDs
   (e.g., America/New_York, Asia/Tokyo).
+
+## Code of Conduct
+
+See `CODE_OF_CONDUCT.md`.
+
+## Contributing
+
+See `CONTRIBUTING.md`.
+
+## License
+
+See `LICENSE.md`.
