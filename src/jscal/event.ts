@@ -51,7 +51,7 @@ export class EventObject extends Base<Event> {
     if (timeZone !== undefined) data.timeZone = timeZone;
     if (rawDuration !== undefined) {
       data.duration = isNumberValue(rawDuration)
-        ? durationFromSeconds(rawDuration)
+        ? durationFromSeconds(Math.max(0, rawDuration))
         : rawDuration;
     }
     if (rawCreated) {

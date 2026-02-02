@@ -100,7 +100,7 @@ const task = new JsCal.Task({
     JsCal.Location({ name: "Room A" }),
   ]),
   alerts: JsCal.alerts([
-    JsCal.Alert({ trigger: { "@type": "OffsetTrigger", offset: "-PT15M" } }),
+    JsCal.Alert({ trigger: JsCal.OffsetTrigger({ offset: JsCal.duration.minutes(-15) }) }),
   ]),
 });
 ```

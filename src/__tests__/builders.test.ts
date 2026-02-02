@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { JsCal } from "../jscal.js";
 import {
+  buildAbsoluteTrigger,
   buildAlert,
   buildIdMap,
   buildLink,
   buildLocation,
   buildNDay,
+  buildOffsetTrigger,
   buildRecurrenceRule,
   buildRelation,
   buildTimeZone,
@@ -21,7 +23,8 @@ describe("builders", () => {
     const vloc = buildVirtualLocation({ name: "Zoom", uri: "https://example.com" });
     const link = buildLink({ href: "https://example.com" });
     const relation = buildRelation({ relation: { parent: true } });
-    const alert = buildAlert({ trigger: { "@type": "OffsetTrigger", offset: "-PT15M" } });
+    const alert = buildAlert({ trigger: buildOffsetTrigger({ offset: JsCal.duration.minutes(-15) }) });
+    const absoluteTrigger = buildAbsoluteTrigger({ when: "2026-02-01T00:00:00Z" });
     const nday = buildNDay({ day: "mo" });
     const rule = buildRecurrenceRule({ frequency: "daily" });
     const tzRule = buildTimeZoneRule({
@@ -40,6 +43,7 @@ describe("builders", () => {
     expect(link["@type"]).toBe("Link");
     expect(relation["@type"]).toBe("Relation");
     expect(alert["@type"]).toBe("Alert");
+    expect(absoluteTrigger["@type"]).toBe("AbsoluteTrigger");
     expect(nday["@type"]).toBe("NDay");
     expect(rule["@type"]).toBe("RecurrenceRule");
     expect(tz["@type"]).toBe("TimeZone");
@@ -88,6 +92,10 @@ describe("builders", () => {
       .toThrowError("virtualLocation: must have @type VirtualLocation");
     expect(() => buildAlert({ "@type": "Link" } as unknown as Parameters<typeof buildAlert>[0]))
       .toThrowError("alert: must have @type Alert");
+    expect(() => buildOffsetTrigger({ "@type": "Alert" } as unknown as Parameters<typeof buildOffsetTrigger>[0]))
+      .toThrowError("offsetTrigger: must have @type OffsetTrigger");
+    expect(() => buildAbsoluteTrigger({ "@type": "Alert" } as unknown as Parameters<typeof buildAbsoluteTrigger>[0]))
+      .toThrowError("absoluteTrigger: must have @type AbsoluteTrigger");
     expect(() => buildRelation({ "@type": "Link" } as unknown as Parameters<typeof buildRelation>[0]))
       .toThrowError("relation: must have @type Relation");
     expect(() => buildLink({ "@type": "Relation" } as unknown as Parameters<typeof buildLink>[0]))

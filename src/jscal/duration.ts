@@ -6,7 +6,9 @@ import { EMPTY_STRING } from "./constants.js";
  * @return ISO 8601 duration string.
  */
 export function durationFromSeconds(totalSeconds: number): string {
-  const clamped = Math.max(0, Math.floor(totalSeconds));
+  const negative = totalSeconds < 0;
+  const absSeconds = Math.abs(totalSeconds);
+  const clamped = Math.floor(absSeconds);
   const days = Math.floor(clamped / 86400);
   let remaining = clamped % 86400;
   const hours = Math.floor(remaining / 3600);
@@ -22,14 +24,15 @@ export function durationFromSeconds(totalSeconds: number): string {
     timeParts.push(`${seconds}S`);
   }
   const timePart = timeParts.length > 0 ? `T${timeParts.join("")}` : "";
-  return `P${datePart}${timePart}`;
+  const sign = negative && clamped > 0 ? "-" : "";
+  return `${sign}P${datePart}${timePart}`;
 }
 
 export const Duration = {
   /**
    * Convert seconds to a duration string.
    * @param value Total seconds.
-   * @return ISO 8601 duration string.
+   * @return ISO 8601 duration string (signed when negative).
    */
   seconds(value: number): string {
     return durationFromSeconds(value);
@@ -37,7 +40,7 @@ export const Duration = {
   /**
    * Convert minutes to a duration string.
    * @param value Total minutes.
-   * @return ISO 8601 duration string.
+   * @return ISO 8601 duration string (signed when negative).
    */
   minutes(value: number): string {
     return durationFromSeconds(value * 60);
@@ -45,7 +48,7 @@ export const Duration = {
   /**
    * Convert hours to a duration string.
    * @param value Total hours.
-   * @return ISO 8601 duration string.
+   * @return ISO 8601 duration string (signed when negative).
    */
   hours(value: number): string {
     return durationFromSeconds(value * 3600);
@@ -53,7 +56,7 @@ export const Duration = {
   /**
    * Convert days to a duration string.
    * @param value Total days.
-   * @return ISO 8601 duration string.
+   * @return ISO 8601 duration string (signed when negative).
    */
   days(value: number): string {
     return durationFromSeconds(value * 86400);
@@ -61,7 +64,7 @@ export const Duration = {
   /**
    * Build a duration string from component parts.
    * @param parts Day/hour/minute/second parts.
-   * @return ISO 8601 duration string.
+   * @return ISO 8601 duration string (signed when total is negative).
    */
   from(parts: { days?: number; hours?: number; minutes?: number; seconds?: number }): string {
     const seconds = (parts.days ?? 0) * 86400 +

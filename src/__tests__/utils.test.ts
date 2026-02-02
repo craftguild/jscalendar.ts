@@ -71,6 +71,16 @@ describe("utils", () => {
     expect(JsCal.duration.from({ hours: 1, minutes: 15 })).toBe("PT1H15M");
   });
 
+  it("builds signed duration strings for negative values", () => {
+    expect(JsCal.duration.minutes(-15)).toBe("-PT15M");
+    expect(JsCal.duration.seconds(-1)).toBe("-PT1S");
+    expect(JsCal.duration.from({ minutes: -15 })).toBe("-PT15M");
+  });
+
+  it("avoids negative zero in duration strings", () => {
+    expect(JsCal.duration.seconds(-0)).toBe("PT0S");
+  });
+
   it("creates base64url ids", () => {
     const id = JsCal.createId();
     expect(id).toMatch(/^[A-Za-z0-9_-]+$/);

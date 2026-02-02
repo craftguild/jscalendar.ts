@@ -1,8 +1,10 @@
 import type {
   Alert,
+  AbsoluteTrigger,
   Link,
   Location,
   NDay,
+  OffsetTrigger,
   Participant,
   RecurrenceRule,
   Relation,
@@ -15,11 +17,14 @@ import { createId } from "./ids.js";
 import { validateAlert, validateLink, validateLocation, validateParticipant, validateRelation, validateTimeZoneObject, validateTimeZoneRule, validateVirtualLocation } from "../validate/validators-common.js";
 import { validateNDay, validateRecurrenceRule } from "../validate/validators-recurrence.js";
 import { fail } from "../validate/error.js";
+import { assertSignedDuration, assertString, assertUtcDateTime } from "../validate/asserts.js";
 
 const TYPE_PARTICIPANT = "Participant";
 const TYPE_LOCATION = "Location";
 const TYPE_VIRTUAL_LOCATION = "VirtualLocation";
 const TYPE_ALERT = "Alert";
+const TYPE_OFFSET_TRIGGER = "OffsetTrigger";
+const TYPE_ABSOLUTE_TRIGGER = "AbsoluteTrigger";
 const TYPE_RELATION = "Relation";
 const TYPE_LINK = "Link";
 const TYPE_TIME_ZONE = "TimeZone";
@@ -33,6 +38,8 @@ export type ParticipantInput = WithOptionalType<Participant, typeof TYPE_PARTICI
 export type LocationInput = WithOptionalType<Location, typeof TYPE_LOCATION>;
 export type VirtualLocationInput = WithOptionalType<VirtualLocation, typeof TYPE_VIRTUAL_LOCATION>;
 export type AlertInput = WithOptionalType<Alert, typeof TYPE_ALERT>;
+export type OffsetTriggerInput = WithOptionalType<OffsetTrigger, typeof TYPE_OFFSET_TRIGGER>;
+export type AbsoluteTriggerInput = WithOptionalType<AbsoluteTrigger, typeof TYPE_ABSOLUTE_TRIGGER>;
 export type RelationInput = WithOptionalType<Relation, typeof TYPE_RELATION>;
 export type LinkInput = WithOptionalType<Link, typeof TYPE_LINK>;
 export type TimeZoneInput = WithOptionalType<TimeZone, typeof TYPE_TIME_ZONE>;
@@ -94,6 +101,35 @@ export function buildAlert(input: AlertInput): Alert {
   const alert: Alert = { ...input, "@type": TYPE_ALERT };
   validateAlert(alert, "alert");
   return alert;
+}
+
+/**
+ * Build an OffsetTrigger object with @type set and validated.
+ * @param input OffsetTrigger fields without @type.
+ * @return Validated OffsetTrigger object.
+ */
+export function buildOffsetTrigger(input: OffsetTriggerInput): OffsetTrigger {
+  if (input["@type"] && input["@type"] !== TYPE_OFFSET_TRIGGER) {
+    fail("offsetTrigger", `must have @type ${TYPE_OFFSET_TRIGGER}`);
+  }
+  const trigger: OffsetTrigger = { ...input, "@type": TYPE_OFFSET_TRIGGER };
+  assertSignedDuration(trigger.offset, "offsetTrigger.offset");
+  assertString(trigger.relativeTo, "offsetTrigger.relativeTo");
+  return trigger;
+}
+
+/**
+ * Build an AbsoluteTrigger object with @type set and validated.
+ * @param input AbsoluteTrigger fields without @type.
+ * @return Validated AbsoluteTrigger object.
+ */
+export function buildAbsoluteTrigger(input: AbsoluteTriggerInput): AbsoluteTrigger {
+  if (input["@type"] && input["@type"] !== TYPE_ABSOLUTE_TRIGGER) {
+    fail("absoluteTrigger", `must have @type ${TYPE_ABSOLUTE_TRIGGER}`);
+  }
+  const trigger: AbsoluteTrigger = { ...input, "@type": TYPE_ABSOLUTE_TRIGGER };
+  assertUtcDateTime(trigger.when, "absoluteTrigger.when");
+  return trigger;
 }
 
 /**

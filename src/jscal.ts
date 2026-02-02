@@ -13,9 +13,11 @@ import { normalizeItems, normalizeToObjects } from "./jscal/normalize.js";
 import { isEvent, isGroup, isTask } from "./jscal/guards.js";
 import {
   buildAlert,
+  buildAbsoluteTrigger,
   buildLink,
   buildLocation,
   buildNDay,
+  buildOffsetTrigger,
   buildParticipants,
   buildRecurrenceRule,
   buildRelation,
@@ -33,9 +35,11 @@ import {
 export type { CreateOptions, UpdateOptions } from "./jscal/types.js";
 export type {
   AlertInput,
+  AbsoluteTriggerInput,
   LinkInput,
   LocationInput,
   NDayInput,
+  OffsetTriggerInput,
   ParticipantInput,
   RecurrenceRuleInput,
   RelationInput,
@@ -60,6 +64,8 @@ export const JsCal = {
   Location: buildLocation,
   VirtualLocation: buildVirtualLocation,
   Alert: buildAlert,
+  OffsetTrigger: buildOffsetTrigger,
+  AbsoluteTrigger: buildAbsoluteTrigger,
   Relation: buildRelation,
   Link: buildLink,
   TimeZone: buildTimeZone,
