@@ -40,6 +40,7 @@ export type UpdateOptions = {
 
 type DateInput = string | Date;
 type DurationInput = string | number;
+type EntryInput = Event | Task | { data: Event | Task };
 type EventInput = Omit<Event, "@type" | "uid" | "updated" | "created" | "start" | "duration" | "timeZone"> & {
   start: DateInput;
   duration?: DurationInput;
@@ -58,7 +59,8 @@ type TaskInput = Omit<Task, "@type" | "uid" | "updated" | "created" | "start" | 
   timeZone?: TimeZoneInput | null;
 };
 
-type GroupInput = Omit<Group, "@type" | "uid" | "updated" | "created"> & {
+type GroupInput = Omit<Group, "@type" | "uid" | "updated" | "created" | "entries"> & {
+  entries: EntryInput[];
   uid?: string;
   updated?: DateInput;
   created?: DateInput;
@@ -491,7 +493,7 @@ class GroupObject extends Base<Group> {
     }
     const now = options.now ?? nowUtc;
     const { updated: rawUpdated, created: rawCreated, ...rest } = input;
-    const entries = input.entries;
+    const entries = input.entries.map((entry) => normalizeEntry(entry));
     const updated = rawUpdated ? toUtcDateTime(rawUpdated) : now();
     const data: Group = {
       ...rest,
@@ -512,8 +514,8 @@ class GroupObject extends Base<Group> {
     super(data);
   }
 
-  addEntry(entry: Event | Task): this {
-    const entries = [...this.data.entries, entry];
+  addEntry(entry: Event | Task | { data: Event | Task }): this {
+    const entries = [...this.data.entries, normalizeEntry(entry)];
     this.data.entries = entries;
     this.touchKeys(["entries"]);
     return this;
@@ -591,6 +593,13 @@ function normalizeItems(items: Array<JSCalendarObject | { data: JSCalendarObject
     }
   }
   return mapped;
+}
+
+function normalizeEntry(entry: EntryInput): Event | Task {
+  if (typeof entry === "object" && entry !== null && isJsCalInstance(entry)) {
+    return entry.data;
+  }
+  return entry;
 }
 
 function normalizeToObjects(

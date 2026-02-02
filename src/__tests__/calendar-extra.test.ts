@@ -22,6 +22,17 @@ describe("JsCal helpers", () => {
     expect(group.data.entries.length).toBe(1);
   });
 
+  it("accepts JsCal instances and ejected entries in groups", () => {
+    const event = makeEvent();
+    const task = new JsCal.Task({ title: "Task", start: "2026-02-02T10:00:00" }, { now: fixedNow });
+    const group = new JsCal.Group({
+      entries: [event, task.eject()],
+    }, { now: fixedNow });
+    expect(group.data.entries.length).toBe(2);
+    expect(group.data.entries[0]?.["@type"]).toBe("Event");
+    expect(group.data.entries[1]?.["@type"]).toBe("Task");
+  });
+
   it("does not expose addEntry on non-group", () => {
     const event = makeEvent();
     expect("addEntry" in event).toBe(false);

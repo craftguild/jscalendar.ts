@@ -62,11 +62,45 @@ const task = new JsCal.Task({
 
 ### Group
 
+`entries` accepts either plain JSCalendar objects (including `eject()` results)
+or `JsCal.Event`/`JsCal.Task` instances.
+
 ```ts
 const group = new JsCal.Group({
   title: "Project A",
-  entries: [event.eject(), task.eject()],
+  entries: [event, task.eject()],
 });
+```
+
+## Ejecting to plain objects
+
+`JsCal.Event`/`JsCal.Task` are class instances with helper methods and a
+`data` field that stores the RFC 8984 object. `eject()` returns a deep
+clone of that underlying JSCalendar object for serialization, storage,
+or passing across app boundaries.
+
+Why `eject()` exists:
+- Class instances are convenient for building and mutating objects with
+  helpers like `update`, `patch`, and `addParticipant`.
+- External APIs, storage layers, and JSON stringify expect plain objects.
+- A deep clone makes it safe to hand off data without accidental mutation
+  from the original instance (and vice versa).
+
+What changes after `eject()`:
+- You lose helper methods; the result is just a plain JSCalendar object.
+- Mutating the plain object does not affect the original instance.
+- The instance can still be used and updated independently.
+
+```ts
+const event = new JsCal.Event({ title: "Kickoff", start: "2026-02-02T10:00:00" });
+const plain = event.eject();
+
+// Plain object is ready for JSON / storage / network.
+JSON.stringify(plain);
+
+// Changes do not affect each other.
+plain.title = "Exported";
+event.update({ title: "Live" });
 ```
 
 ## Updates and Mutations
