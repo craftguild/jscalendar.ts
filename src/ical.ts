@@ -7,8 +7,17 @@ export type ICalOptions = {
   includeXJSCalendar?: boolean;
 };
 
+const TYPE_EVENT = "Event";
+const TYPE_GROUP = "Group";
+const TYPE_TASK = "Task";
 const DEFAULT_PRODID = "-//craftguild//EN";
 
+/**
+ * Convert JSCalendar objects into an iCalendar string.
+ * @param objects JSCalendar objects to export.
+ * @param options Export options.
+ * @return iCalendar text.
+ */
 export function toICal(objects: JSCalendarObject[], options: ICalOptions = {}): string {
   const lines: string[] = [];
   const includeX = options.includeXJSCalendar !== false;
@@ -21,7 +30,7 @@ export function toICal(objects: JSCalendarObject[], options: ICalOptions = {}): 
   if (method) lines.push(`METHOD:${method.toUpperCase()}`);
 
   for (const object of objects) {
-    if (object["@type"] === "Group") {
+    if (object["@type"] === TYPE_GROUP) {
       const group = object;
       if (includeX) {
         lines.push(`X-JSCALENDAR-GROUP:${escapeText(JSON.stringify(stripEntries(group)))}`);
@@ -38,6 +47,11 @@ export function toICal(objects: JSCalendarObject[], options: ICalOptions = {}): 
   return foldLines(lines).join("\r\n");
 }
 
+/**
+ * Find the first METHOD value from objects.
+ * @param objects JSCalendar objects.
+ * @return METHOD value or undefined.
+ */
 function findMethod(objects: JSCalendarObject[]): string | undefined {
   for (const object of objects) {
     if (object.method) return object.method;
@@ -45,12 +59,24 @@ function findMethod(objects: JSCalendarObject[]): string | undefined {
   return undefined;
 }
 
+/**
+ * Build an iCalendar component from a JSCalendar object.
+ * @param object JSCalendar object.
+ * @param includeX Whether to include X-JSCALENDAR.
+ * @return iCalendar lines for the component.
+ */
 function buildComponent(object: JSCalendarObject, includeX: boolean): string[] {
-  if (object["@type"] === "Event") return buildEvent(object, includeX);
-  if (object["@type"] === "Task") return buildTask(object, includeX);
+  if (object["@type"] === TYPE_EVENT) return buildEvent(object, includeX);
+  if (object["@type"] === TYPE_TASK) return buildTask(object, includeX);
   return [];
 }
 
+/**
+ * Build a VEVENT component.
+ * @param event Event object.
+ * @param includeX Whether to include X-JSCALENDAR.
+ * @return VEVENT lines.
+ */
 function buildEvent(event: Event, includeX: boolean): string[] {
   const lines: string[] = [];
   lines.push("BEGIN:VEVENT");
@@ -80,6 +106,12 @@ function buildEvent(event: Event, includeX: boolean): string[] {
   return lines;
 }
 
+/**
+ * Build a VTODO component.
+ * @param task Task object.
+ * @param includeX Whether to include X-JSCALENDAR.
+ * @return VTODO lines.
+ */
 function buildTask(task: Task, includeX: boolean): string[] {
   const lines: string[] = [];
   lines.push("BEGIN:VTODO");
@@ -125,6 +157,12 @@ function buildTask(task: Task, includeX: boolean): string[] {
   return lines;
 }
 
+/**
+ * Append RRULE lines for recurrence rules.
+ * @param lines Lines to append to.
+ * @param rules Recurrence rules.
+ * @return Nothing.
+ */
 function appendRecurrence(lines: string[], rules?: RecurrenceRule[]): void {
   if (!rules) return;
   for (const rule of rules) {
@@ -133,6 +171,11 @@ function appendRecurrence(lines: string[], rules?: RecurrenceRule[]): void {
   }
 }
 
+/**
+ * Convert a RecurrenceRule to an RRULE string.
+ * @param rule Recurrence rule.
+ * @return RRULE value or null.
+ */
 function recurrenceRuleToRRule(rule: RecurrenceRule): string | null {
   const parts: string[] = [];
   parts.push(`FREQ=${rule.frequency.toUpperCase()}`);
@@ -159,6 +202,11 @@ function recurrenceRuleToRRule(rule: RecurrenceRule): string | null {
   return parts.join(";");
 }
 
+/**
+ * Format a UTCDateTime for iCalendar.
+ * @param value UTCDateTime string.
+ * @return iCalendar-formatted UTCDateTime.
+ */
 function formatUtcDateTime(value: string): string {
   const normalized = normalizeUtcDateTime(value);
   return normalized
@@ -167,6 +215,11 @@ function formatUtcDateTime(value: string): string {
     .replace(/Z$/, "Z");
 }
 
+/**
+ * Format a LocalDateTime for iCalendar.
+ * @param value LocalDateTime string.
+ * @return iCalendar-formatted LocalDateTime.
+ */
 function formatLocalDateTime(value: string): string {
   return value
     .replace(/[-:]/g, "")
@@ -174,6 +227,11 @@ function formatLocalDateTime(value: string): string {
     .replace(/Z$/, "");
 }
 
+/**
+ * Escape text for iCalendar content lines.
+ * @param value Raw text.
+ * @return Escaped text.
+ */
 function escapeText(value: string): string {
   return value
     .replace(/\\/g, "\\\\")
@@ -182,6 +240,11 @@ function escapeText(value: string): string {
     .replace(/,/g, "\\,");
 }
 
+/**
+ * Fold iCalendar lines to 75 octets per RFC.
+ * @param lines Lines to fold.
+ * @return Folded lines.
+ */
 function foldLines(lines: string[]): string[] {
   const result: string[] = [];
   for (const line of lines) {
@@ -200,6 +263,11 @@ function foldLines(lines: string[]): string[] {
   return result;
 }
 
+/**
+ * Strip group entries for X-JSCALENDAR-GROUP payload.
+ * @param group Group object.
+ * @return Group without entries.
+ */
 function stripEntries(group: Group): Omit<Group, "entries"> {
   const { entries: _entries, ...rest } = group;
   return rest;

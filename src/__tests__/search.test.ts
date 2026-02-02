@@ -100,6 +100,35 @@ describe("search helpers", () => {
     expect(first.uid).toBe("e1");
   });
 
+  it("handles Date range for UTC events without time zones", () => {
+    const utcEvent: Event = {
+      "@type": "Event",
+      uid: "eUtc",
+      updated: "2026-02-01T00:00:00Z",
+      start: "2026-02-01T10:00:00Z",
+      duration: "PT1H",
+    };
+    const results = filterByDateRange([utcEvent], {
+      start: new Date("2026-02-01T09:30:00Z"),
+      end: new Date("2026-02-01T10:30:00Z"),
+    });
+    expect(results.map((item) => item.uid)).toEqual(["eUtc"]);
+  });
+
+  it("handles Date range for UTC tasks without time zones", () => {
+    const utcTask: Task = {
+      "@type": "Task",
+      uid: "tUtc",
+      updated: "2026-02-01T00:00:00Z",
+      start: "2026-02-01T10:00:00Z",
+    };
+    const results = filterByDateRange([utcTask], {
+      start: new Date("2026-02-01T09:30:00Z"),
+      end: new Date("2026-02-01T10:30:00Z"),
+    });
+    expect(results.map((item) => item.uid)).toEqual(["tUtc"]);
+  });
+
   it("uses JsCal.groupByType wrapper", () => {
     const grouped = JsCal.groupByType([event, task]);
     expect(Object.keys(grouped)).toContain("Event");

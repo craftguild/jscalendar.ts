@@ -1,5 +1,17 @@
 import type { Event, Group, JSCalendarObject, Task } from "./types.js";
-import { compareDateTime, dateTimeInTimeZone, durationToMilliseconds, isUtcDateTime, localDateTimeFromDate, localDateTimeToUtcDate } from "./utils.js";
+import {
+  compareDateTime,
+  dateTimeInTimeZone,
+  durationToMilliseconds,
+  isStringValue,
+  isUtcDateTime,
+  localDateTimeFromDate,
+  localDateTimeToUtcDate,
+} from "./utils.js";
+
+const TYPE_EVENT = "Event";
+const TYPE_GROUP = "Group";
+const TYPE_TASK = "Task";
 
 export type DateRangeValue = string | Date;
 
@@ -12,14 +24,31 @@ export type DateRangeOptions = {
   includeIncomparable?: boolean;
 };
 
+/**
+ * Find a JSCalendar object by UID.
+ * @param items Items to search.
+ * @param uid UID to match.
+ * @return The matching item or undefined.
+ */
 export function findByUid<T extends JSCalendarObject>(items: T[], uid: string): T | undefined {
   return items.find((item) => item.uid === uid);
 }
 
+/**
+ * Filter items by JSCalendar @type.
+ * @param items Items to filter.
+ * @param type Type to match.
+ * @return Filtered items.
+ */
 export function filterByType<T extends JSCalendarObject>(items: T[], type: T["@type"]): T[] {
   return items.filter((item) => item["@type"] === type);
 }
 
+/**
+ * Group JSCalendar objects by @type.
+ * @param items Items to group.
+ * @return Record keyed by type.
+ */
 export function groupByType(items: JSCalendarObject[]): Record<string, JSCalendarObject[]> {
   return items.reduce<Record<string, JSCalendarObject[]>>((acc, item) => {
     const type = item["@type"];
@@ -29,12 +58,25 @@ export function groupByType(items: JSCalendarObject[]): Record<string, JSCalenda
   }, {});
 }
 
+/**
+ * Filter items by free-text match.
+ * @param items Items to search.
+ * @param query Text query.
+ * @return Filtered items.
+ */
 export function filterByText(items: JSCalendarObject[], query: string): JSCalendarObject[] {
   const needle = query.trim().toLowerCase();
   if (!needle) return items;
   return items.filter((item) => collectText(item).includes(needle));
 }
 
+/**
+ * Filter items that intersect a date range.
+ * @param items Items to filter.
+ * @param range Range with optional start and end.
+ * @param options Filtering options.
+ * @return Filtered items.
+ */
 export function filterByDateRange(
   items: JSCalendarObject[],
   range: DateRange,
@@ -78,15 +120,26 @@ export function filterByDateRange(
   });
 }
 
+/**
+ * Normalize a range value into a LocalDateTime or UTCDateTime string.
+ * @param value Range value.
+ * @param timeZone Optional time zone.
+ * @return Normalized date-time string.
+ */
 function normalizeRangeValue(value: DateRangeValue | undefined, timeZone?: string): string {
   if (!value) return "";
-  if (typeof value === "string") return value;
+  if (isStringValue(value)) return value;
   if (timeZone) {
     return dateTimeInTimeZone(value, timeZone);
   }
   return localDateTimeFromDate(value);
 }
 
+/**
+ * Collect searchable text from a JSCalendar object.
+ * @param item Item to inspect.
+ * @return Lowercased text blob.
+ */
 function collectText(item: JSCalendarObject): string {
   const parts: string[] = [];
   if (item.title) parts.push(item.title);
@@ -118,32 +171,47 @@ function collectText(item: JSCalendarObject): string {
   return parts.join(" ").toLowerCase();
 }
 
+/**
+ * Get the string-based time range for an object.
+ * @param item JSCalendar object.
+ * @return Range or null if unavailable.
+ */
 function getObjectRange(item: JSCalendarObject): { start: string; end?: string } | null {
-  if (item["@type"] === "Event") {
+  if (item["@type"] === TYPE_EVENT) {
     return getEventRange(item);
   }
-  if (item["@type"] === "Task") {
+  if (item["@type"] === TYPE_TASK) {
     return getTaskRange(item);
   }
-  if (item["@type"] === "Group") {
+  if (item["@type"] === TYPE_GROUP) {
     return getGroupRange(item);
   }
   return null;
 }
 
+/**
+ * Get the Date-based time range for an object.
+ * @param item JSCalendar object.
+ * @return Range or null if unavailable.
+ */
 function getObjectRangeAsDates(item: JSCalendarObject): { start: Date; end?: Date } | null {
-  if (item["@type"] === "Event") {
+  if (item["@type"] === TYPE_EVENT) {
     return getEventRangeAsDates(item);
   }
-  if (item["@type"] === "Task") {
+  if (item["@type"] === TYPE_TASK) {
     return getTaskRangeAsDates(item);
   }
-  if (item["@type"] === "Group") {
+  if (item["@type"] === TYPE_GROUP) {
     return getGroupRangeAsDates(item);
   }
   return null;
 }
 
+/**
+ * Get the string-based range for an event.
+ * @param event Event instance.
+ * @return Event range.
+ */
 function getEventRange(event: Event): { start: string; end?: string } {
   if (!event.duration) return { start: event.start };
   if (isUtcDateTime(event.start)) {
@@ -156,6 +224,11 @@ function getEventRange(event: Event): { start: string; end?: string } {
   return { start: event.start };
 }
 
+/**
+ * Get the Date-based range for an event.
+ * @param event Event instance.
+ * @return Event range or null if incomparable.
+ */
 function getEventRangeAsDates(event: Event): { start: Date; end?: Date } | null {
   const start = event.timeZone
     ? localDateTimeToUtcDate(event.start, event.timeZone)
@@ -169,12 +242,22 @@ function getEventRangeAsDates(event: Event): { start: Date; end?: Date } | null 
   return { start, end: new Date(start.getTime() + ms) };
 }
 
+/**
+ * Get the string-based range for a task.
+ * @param task Task instance.
+ * @return Task range or null if missing.
+ */
 function getTaskRange(task: Task): { start: string; end?: string } | null {
   const start = task.start ?? task.due;
   if (!start) return null;
   return { start };
 }
 
+/**
+ * Get the Date-based range for a task.
+ * @param task Task instance.
+ * @return Task range or null if incomparable.
+ */
 function getTaskRangeAsDates(task: Task): { start: Date; end?: Date } | null {
   const start = task.start ?? task.due;
   if (!start) return null;
@@ -187,6 +270,11 @@ function getTaskRangeAsDates(task: Task): { start: Date; end?: Date } | null {
   return null;
 }
 
+/**
+ * Get the string-based range for a group.
+ * @param group Group instance.
+ * @return Group range or null if empty.
+ */
 function getGroupRange(group: Group): { start: string; end?: string } | null {
   const ranges = group.entries
     .map((entry) => getObjectRange(entry))
@@ -200,6 +288,11 @@ function getGroupRange(group: Group): { start: string; end?: string } | null {
   return { start, end };
 }
 
+/**
+ * Get the Date-based range for a group.
+ * @param group Group instance.
+ * @return Group range or null if empty.
+ */
 function getGroupRangeAsDates(group: Group): { start: Date; end?: Date } | null {
   const ranges = group.entries
     .map((entry) => getObjectRangeAsDates(entry))

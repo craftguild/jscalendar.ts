@@ -57,3 +57,14 @@
 - `src/timezones.ts` generated list & resolver
 - `README.md` usage/examples
 - Tests in `src/__tests__`
+
+## Refactoring rules
+- Keep public method signatures unchanged.
+- Add JSDoc in English for every method/function with `@param`/`@return`.
+- JSDoc summaries should describe the behavior, not just say “helper”.
+- Fix JSDoc formatting (asterisk alignment, line breaks) when touched.
+- Avoid bulk/automatic JSDoc rewrites; review each file manually.
+- Prefer small methods (~15 lines) and split when practical.
+- When splitting creates duplicate logic, consolidate into `utils` or shared libs.
+- When comparing string values to literals, define a constant and compare against it.
+- Keep files around 250–400 lines where practical; `src/timezones.ts` may remain a single file.

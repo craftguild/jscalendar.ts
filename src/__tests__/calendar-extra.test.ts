@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { JsCal, createId, isEvent, isGroup, isTask } from "../jscal.js";
+import { Base } from "../jscal/base.js";
 
 const fixedNow = () => "2026-02-01T00:00:00Z";
 
@@ -99,6 +100,34 @@ describe("JsCal helpers", () => {
     const json = event.eject();
     json.title = "Changed";
     expect(event.data.title).toBe("Kickoff");
+  });
+
+  it("clones Base instances with deep-copied data", () => {
+    const base = new Base({ "@type": "Event", uid: "base", updated: "2026-02-01T00:00:00Z", start: "2026-02-01T10:00:00" });
+    const cloned = base.clone();
+    cloned.data.uid = "changed";
+    expect(base.data.uid).toBe("base");
+  });
+
+  it("builds participant inputs without @type", () => {
+    const participant = JsCal.Participant({ name: "Alice", roles: { attendee: true } });
+    const task = new JsCal.Task({
+      start: "2026-02-02T10:00:00",
+      participants: { p1: participant },
+    });
+    expect(task.data.participants?.p1?.["@type"]).toBe("Participant");
+  });
+
+  it("builds participant maps with stable ids", () => {
+    const participants = JsCal.participants([
+      { name: "Alice", roles: { attendee: true } },
+      { name: "Bob", roles: { attendee: true } },
+    ]);
+    const task = new JsCal.Task({
+      start: "2026-02-02T10:00:00",
+      participants,
+    });
+    expect(Object.keys(task.data.participants ?? {}).length).toBe(2);
   });
 
   it("createId returns base64url without padding", () => {

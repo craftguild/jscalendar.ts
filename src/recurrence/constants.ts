@@ -1,0 +1,13 @@
+export const TYPE_EVENT = "Event";
+export const TYPE_TASK = "Task";
+export const RSCALE_GREGORIAN = "gregorian";
+export const SKIP_OMIT = "omit";
+export const SKIP_FORWARD = "forward";
+export const SKIP_BACKWARD = "backward";
+export const FREQ_YEARLY = "yearly";
+export const FREQ_MONTHLY = "monthly";
+export const FREQ_WEEKLY = "weekly";
+export const FREQ_DAILY = "daily";
+export const FREQ_HOURLY = "hourly";
+export const FREQ_MINUTELY = "minutely";
+export const FREQ_SECONDLY = "secondly";

@@ -518,6 +518,147 @@ describe("recurrence expansion", () => {
     ]);
   });
 
+  it("uses implicit byMonthDay for monthly rules", () => {
+    const event = new JsCal.Event({
+      title: "Monthly Default",
+      start: "2026-02-10T09:00:00",
+      recurrenceRules: [
+        { "@type": "RecurrenceRule", frequency: "monthly", count: 2 },
+      ],
+    });
+
+    const occ = collect(JsCal.expandRecurrence([event], {
+      from: new Date("2026-02-01"),
+      to: new Date("2026-03-31"),
+    }));
+
+    const starts = occ.map((o) => o.recurrenceId);
+    expect(starts).toEqual([
+      "2026-02-10T09:00:00",
+      "2026-03-10T09:00:00",
+    ]);
+  });
+
+  it("adds byMonth defaults for yearly rules with byMonthDay", () => {
+    const event = new JsCal.Event({
+      title: "Yearly ByMonthDay",
+      start: "2026-02-01T09:00:00",
+      recurrenceRules: [
+        { "@type": "RecurrenceRule", frequency: "yearly", byMonthDay: [1], count: 2 },
+      ],
+    });
+
+    const occ = collect(JsCal.expandRecurrence([event], {
+      from: new Date("2026-02-01"),
+      to: new Date("2027-02-02"),
+    }));
+
+    const starts = occ.map((o) => o.recurrenceId);
+    expect(starts).toEqual([
+      "2026-02-01T09:00:00",
+      "2027-02-01T09:00:00",
+    ]);
+  });
+
+  it("adds byDay defaults for yearly byWeekNo rules", () => {
+    const event = new JsCal.Event({
+      title: "Week 1 Default Day",
+      start: "2026-01-01T09:00:00",
+      recurrenceRules: [
+        { "@type": "RecurrenceRule", frequency: "yearly", byWeekNo: [1], count: 1 },
+      ],
+    });
+
+    const occ = collect(JsCal.expandRecurrence([event], {
+      from: new Date("2026-01-01"),
+      to: new Date("2026-01-10"),
+    }));
+
+    const starts = occ.map((o) => o.recurrenceId);
+    expect(starts).toEqual([
+      "2026-01-01T09:00:00",
+    ]);
+  });
+
+  it("supports negative bySetPosition values", () => {
+    const event = new JsCal.Event({
+      title: "Last Wednesday",
+      start: "2026-01-07T10:00:00",
+      recurrenceRules: [
+        {
+          "@type": "RecurrenceRule",
+          frequency: "monthly",
+          byDay: [{ "@type": "NDay", day: "we" }],
+          bySetPosition: [-1],
+        },
+      ],
+    });
+
+    const occ = collect(JsCal.expandRecurrence([event], {
+      from: new Date("2026-01-01"),
+      to: new Date("2026-03-31"),
+    }));
+
+    const starts = occ.map((o) => o.recurrenceId);
+    expect(starts).toEqual([
+      "2026-01-07T10:00:00",
+      "2026-01-28T10:00:00",
+      "2026-02-25T10:00:00",
+      "2026-03-25T10:00:00",
+    ]);
+  });
+
+  it("expands tasks that only have due dates", () => {
+    const task = new JsCal.Task({
+      title: "Due Only",
+      due: "2026-02-01T10:00:00",
+      recurrenceRules: [
+        { "@type": "RecurrenceRule", frequency: "daily", count: 2 },
+      ],
+      recurrenceOverrides: {
+        "2026-02-02T10:00:00": { "/due": "2026-02-05T10:00:00" },
+      },
+    });
+
+    const occ = Array.from(JsCal.expandRecurrence([task], {
+      from: new Date("2026-02-01"),
+      to: new Date("2026-02-03"),
+    }));
+
+    expect(occ.map((o) => o.recurrenceId)).toEqual([
+      "2026-02-01T10:00:00",
+      "2026-02-02T10:00:00",
+    ]);
+    // Intentional cast to Task for test-only access to due.
+    const second = occ[1] as import("../types.js").Task | undefined;
+    expect(second?.due).toBe("2026-02-05T10:00:00");
+  });
+
+  it("skips tasks without start or due dates", () => {
+    const task = new JsCal.Task({ title: "No Dates" });
+    const occ = Array.from(JsCal.expandRecurrence([task], {
+      from: new Date("2026-02-01"),
+      to: new Date("2026-02-02"),
+    }));
+    expect(occ.length).toBe(0);
+  });
+
+  it("throws on unsupported rscale during expansion", () => {
+    const event = new JsCal.Event({
+      title: "Bad Rscale",
+      start: "2026-02-01T10:00:00",
+      recurrenceRules: [
+        { "@type": "RecurrenceRule", frequency: "daily", rscale: "hebrew" },
+      ],
+    }, { validate: false });
+
+    expect(() => {
+      for (const _ of JsCal.expandRecurrence([event], { from: new Date("2026-02-01"), to: new Date("2026-02-02") })) {
+        void 0;
+      }
+    }).toThrow("Unsupported rscale");
+  });
+
   it("pages recurrence expansion with cursor and limit", () => {
     const event = new JsCal.Event({
       title: "Weekly",

@@ -41,6 +41,10 @@ describe("utils", () => {
     expect(compareDateTime("2026-02-01T01:00:00Z", "2026-02-01T00:00:00Z")).toBe(1);
   });
 
+  it("returns null for invalid UTC date-times", () => {
+    expect(compareDateTime("2026-99-99T00:00:00Z", "2026-02-01T00:00:00Z")).toBeNull();
+  });
+
   it("compares local date-times lexicographically", () => {
     expect(compareDateTime("2026-02-01T00:00:00", "2026-02-01T00:00:00")).toBe(0);
     expect(compareDateTime("2026-02-01T00:00:00", "2026-02-02T00:00:00")).toBe(-1);

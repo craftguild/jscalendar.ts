@@ -1,0 +1,11 @@
+export const TYPEOF_FUNCTION = "function";
+export const EMPTY_STRING = "";
+export const TYPE_EVENT = "Event";
+export const TYPE_TASK = "Task";
+export const TYPE_GROUP = "Group";
+export const STATUS_COMPLETED = "completed";
+export const STATUS_FAILED = "failed";
+export const STATUS_IN_PROCESS = "in-process";
+export const STATUS_NEEDS_ACTION = "needs-action";
+export const TRIGGER_OFFSET = "OffsetTrigger";
+export const KEY_PARTICIPANTS = "participants";

@@ -72,6 +72,69 @@ const group = new JsCal.Group({
 });
 ```
 
+## Builder Helpers (Strict, Validated Inputs)
+
+JSCalendar objects require `@type` fields for nested objects like
+participants, locations, alerts, and recurrence rules. Requiring every
+caller to manually specify `@type` is noisy and error-prone. To avoid
+leaking RFC-specific details into app code, this library provides
+**builder helpers** that:
+
+- Fill in the correct `@type`
+- Validate the result against RFC 8984 immediately
+
+You can still pass strict plain JSCalendar objects directly (e.g., from
+your database), but builders offer a safer, clearer option for app code.
+
+### Using builders (recommended for app code)
+
+```ts
+const task = new JsCal.Task({
+  title: "Write report",
+  start: "2026-02-11T09:00:00",
+  participants: JsCal.participants([
+    JsCal.Participant({ name: "Alice", email: "a@example.com" }),
+    JsCal.Participant({ name: "Bob" }),
+  ]),
+  locations: JsCal.locations([
+    JsCal.Location({ name: "Room A" }),
+  ]),
+  alerts: JsCal.alerts([
+    JsCal.Alert({ trigger: { "@type": "OffsetTrigger", offset: "-PT15M" } }),
+  ]),
+});
+```
+
+### Using strict plain objects (for DB/imported data)
+
+```ts
+const task = new JsCal.Task({
+  title: "Imported task",
+  start: "2026-02-11T09:00:00",
+  participants: {
+    p1: { "@type": "Participant", name: "Alice", email: "a@example.com" },
+  },
+  locations: {
+    l1: { "@type": "Location", name: "Room A" },
+  },
+  alerts: {
+    a1: { "@type": "Alert", trigger: { "@type": "OffsetTrigger", offset: "-PT15M" } },
+  },
+});
+```
+
+### Validation behavior
+
+Builders validate on creation, and constructors validate on object
+creation. That means:
+
+- Builder inputs are validated immediately
+- `new JsCal.Event/Task/Group(...)` also validates the final object
+
+This double validation is intentional for safety: even if data originates
+from an untrusted or inconsistent source, you still get strict RFC 8984
+checks at the point of object creation.
+
 ## Ejecting to plain objects
 
 `JsCal.Event`/`JsCal.Task` are class instances with helper methods and a
