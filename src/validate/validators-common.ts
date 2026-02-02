@@ -174,7 +174,13 @@ export function validateParticipant(value: Participant, path: string): void {
     }
   }
   assertString(value.kind, `${path}.kind`);
-  if (value.roles) assertBooleanMap(value.roles, `${path}.roles`);
+  if (!value.roles) {
+    fail(`${path}.roles`, "is required");
+  }
+  assertBooleanMap(value.roles, `${path}.roles`);
+  if (Object.keys(value.roles).length === 0) {
+    fail(`${path}.roles`, "must include at least one role");
+  }
   assertId(value.locationId, `${path}.locationId`);
   assertString(value.language, `${path}.language`);
   assertString(value.participationStatus, `${path}.participationStatus`);

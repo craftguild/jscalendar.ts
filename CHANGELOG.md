@@ -12,6 +12,11 @@
 - Fix: clamp negative numeric event durations to zero when normalizing.
 - Docs/Tests: update README examples and expand builder/duration tests.
 
+## 0.4.1
+
+- Fix: enforce required participant roles and reject empty role sets.
+- Docs/Tests: update README examples and add validation coverage for roles.
+
 ## 0.3.0
 
 - Feature: add builder helpers with strict validation and id-map utilities.

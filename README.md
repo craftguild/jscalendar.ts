@@ -93,8 +93,8 @@ const task = new JsCal.Task({
   title: "Write report",
   start: "2026-02-11T09:00:00",
   participants: JsCal.participants([
-    JsCal.Participant({ name: "Alice", email: "a@example.com" }),
-    JsCal.Participant({ name: "Bob" }),
+    JsCal.Participant({ name: "Alice", email: "a@example.com", roles: { attendee: true } }),
+    JsCal.Participant({ name: "Bob", roles: { attendee: true } }),
   ]),
   locations: JsCal.locations([
     JsCal.Location({ name: "Room A" }),

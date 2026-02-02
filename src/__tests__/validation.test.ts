@@ -110,6 +110,24 @@ describe("validation", () => {
     })).toThrowError("object.participants.p1.roles.attendee: must be true");
   });
 
+  it("rejects participants without roles", () => {
+    expect(() => new JsCal.Event({
+      start: "2026-02-01T10:00:00",
+      participants: {
+        p1: { "@type": "Participant", name: "Alice" } as unknown as import("../types.js").Participant,
+      },
+    })).toThrowError("object.participants.p1.roles: is required");
+  });
+
+  it("rejects participants with empty roles", () => {
+    expect(() => new JsCal.Event({
+      start: "2026-02-01T10:00:00",
+      participants: {
+        p1: { "@type": "Participant", roles: {} },
+      },
+    })).toThrowError("object.participants.p1.roles: must include at least one role");
+  });
+
   it("rejects invalid time zone ids", () => {
     expect(() => new JsCal.Event({
       start: "2026-02-01T10:00:00",
