@@ -84,20 +84,6 @@ const task = new JsCal.Task({
 });
 ```
 
-Id maps use `{ id, value }` entries. If you need to merge into an
-existing map, pass it as the second argument. Entries with `id` overwrite
-matching ids; entries without `id` get new generated ids.
-
-```ts
-const mergedLocations = JsCal.locations(
-  [
-    { id: "l1", value: { name: "Room A Updated" } },
-    { value: { name: "Room B" } },
-  ],
-  existingLocations,
-);
-```
-
 ### Group
 
 `entries` accepts either plain JSCalendar objects (including `eject()` results)
@@ -204,15 +190,57 @@ plain.title = "Exported";
 const updated = event.patch({ title: "Live" });
 ```
 
-## Updates and Mutations
+## Patch Usage
 
 Patch helpers return new instances and keep metadata such as
 `updated` and `sequence` consistent. Use `patch` for RFC 8984 PatchObject
-semantics.
+semantics. You can set raw values directly, or use helper methods if you
+prefer validated, type-safe inputs.
 
 ```ts
 const patchedEvent = event.patch({ title: "Updated title" });
 const patchedAgain = patchedEvent.patch({ title: "Patched title" });
+```
+
+You can also patch nested maps by replacing the full map in one call:
+
+```ts
+const withParticipants = event.patch({
+  participants: {
+    p1: { "@type": "Participant", roles: { attendee: true }, email: "a@example.com" },
+  },
+});
+```
+
+Two common patterns for nested patches:
+
+1) Set raw values directly
+```ts
+const withLocations = event.patch({
+  locations: {
+    l1: { "@type": "Location", name: "Room A" },
+  },
+});
+```
+
+2) Use helpers to build or merge map values
+```ts
+const withLocations = event.patch({
+  locations: JsCal.locations([
+    { id: "l1", value: JsCal.Location({ name: "Room A" }) },
+    { value: JsCal.Location({ name: "Room B" }) },
+  ]),
+});
+```
+
+To merge into an existing map, pass the current map as the second argument:
+```ts
+const withLocations = event.patch({
+  locations: JsCal.locations(
+    [{ value: JsCal.Location({ name: "Room C" }) }],
+    event.data.locations,
+  ),
+});
 ```
 
 ## Date Inputs and Time Zones
@@ -349,26 +377,6 @@ console.log(ical);
 
 const icalMany = JsCal.toICal([event, task], { includeXJSCalendar: true });
 console.log(icalMany);
-```
-
-## Practical Example
-
-**Weekly engineering sync (every Wednesday 10:30, 1 hour)**
-
-```ts
-const weekly = new JsCal.Event({
-  title: "Engineering Sync",
-  start: "2026-02-04T10:30:00",
-  timeZone: "Asia/Tokyo",
-  duration: JsCal.duration.hours(1),
-  recurrenceRules: [
-    {
-      "@type": "RecurrenceRule",
-      frequency: "weekly",
-      byDay: [{ "@type": "NDay", day: "we" }],
-    },
-  ],
-});
 ```
 
 ## Compliance and Deviations
