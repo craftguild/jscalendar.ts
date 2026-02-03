@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.2
+
+- Docs: refresh the README logo asset and constrain display height.
+
+## 0.5.1
+
+- Docs: refine README Quick Start and patch usage examples.
+
 ## 0.5.0
 
 - Breaking: remove `update` API; use `patch` for updates.

@@ -1,15 +1,25 @@
+<p style="text-align: center;">
+<img src="assets/d97d4d10-44f9-4b49-9fc2-5aaf33c667ef.png" alt="JSCalendar logo" style="max-height: 320px; height: auto; width: auto;" />
+</p>
+
 # RFC 8984 (JSCalendar) TypeScript Library
 
 This library provides a thin, practical TypeScript API for working with
-RFC 8984 (JSCalendar) objects. It focuses on creation, mutation, search,
-and export. It does **not** implement a calendar application or server.
-The goal is to keep the data model easy to use in web apps and CLIs while
-preserving access to the full RFC object structure when you need it.
+RFC 8984 (JSCalendar) objects while staying close to the spec. It focuses
+on creation, patching, recurrence expansion, search, and iCalendar export.
+It does **not** implement a calendar application or server; it is a data
+model toolkit you can use in web apps, CLIs, or services.
 
 Primary object types are **Event**, **Task**, and **Group**. A **Group**
 acts as a container when you want to bundle multiple objects. The API is
-intentionally small: you create objects, mutate them with safe helpers,
-query them with search utilities, and export them to iCalendar as needed.
+intentionally small but opinionated: constructors normalize required
+fields, validation is strict by default, and `patch` applies RFC 8984
+PatchObject semantics.
+
+For developer experience, the library offers builder helpers that fill
+`@type` fields and validate nested structures (participants, locations,
+alerts, recurrence rules, and more). You can still pass raw, typed
+JSCalendar objects directly when your data already matches the spec.
 
 ## Installation
 
