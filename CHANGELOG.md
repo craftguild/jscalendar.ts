@@ -4,6 +4,10 @@
 
 - Docs: refresh the README logo asset and constrain display height.
 
+## 0.5.3
+
+- Docs: adjust README logo markup to center the image and use a fixed height.
+
 ## 0.5.1
 
 - Docs: refine README Quick Start and patch usage examples.

@@ -1,5 +1,5 @@
-<p style="text-align: center;">
-<img src="assets/d97d4d10-44f9-4b49-9fc2-5aaf33c667ef.png" alt="JSCalendar logo" style="max-height: 320px; height: auto; width: auto;" />
+<p align="center">
+  <img src="assets/d97d4d10-44f9-4b49-9fc2-5aaf33c667ef.png" alt="JSCalendar logo" style="height: 320px; width: auto;" />
 </p>
 
 # RFC 8984 (JSCalendar) TypeScript Library
