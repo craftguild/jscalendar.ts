@@ -1,4 +1,4 @@
-import type { Event } from "../types.js";
+import type { Event, EventPatch } from "../types.js";
 import { resolveTimeZone } from "../timezones.js";
 import { deepClone, nowUtc } from "../utils.js";
 import { validateJsCalendarObject } from "../validate.js";
@@ -10,7 +10,17 @@ import type { CreateOptions, EventInput } from "./types.js";
 import { Base } from "./base.js";
 import { isStringValue, isNumberValue } from "../utils.js";
 
-export class EventObject extends Base<Event> {
+export class EventObject extends Base<Event, EventPatch, EventObject> {
+  /**
+   * Wrap updated data in a new EventObject.
+   * @param data Updated event data.
+   * @return New EventObject instance.
+   */
+  protected wrap(data: Event): EventObject {
+    const { "@type": _type, ...rest } = data;
+    return new EventObject(rest, { validate: false });
+  }
+
   /**
    * Create an event with normalized dates, duration, and RFC defaults.
    * @param input Event input values to normalize.
@@ -72,8 +82,6 @@ export class EventObject extends Base<Event> {
    * @return Cloned EventObject.
    */
   override clone(): EventObject {
-    const cloneData = deepClone(this.data);
-    const { "@type": _type, ...rest } = cloneData;
-    return new EventObject(rest);
+    return this.wrap(deepClone(this.data));
   }
 }

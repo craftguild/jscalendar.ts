@@ -1,4 +1,4 @@
-import type { JsonValue, PatchObject } from "../types.js";
+import type { JsonValue, PatchLike } from "../types.js";
 import { TimeZones } from "../timezones.js";
 import { fail } from "./error.js";
 import { CHARSET_KEY, DATE_TIME, DURATION, ID_PATTERN, UTF8, Z_SUFFIX } from "./constants.js";
@@ -337,7 +337,7 @@ export function assertJsonValue(value: JsonValue | object | null | undefined, pa
  * @param path Validation path.
  * @return Nothing.
  */
-export function assertPatchObject(value: PatchObject | undefined, path: string): void {
+export function assertPatchObject(value: PatchLike | undefined, path: string): void {
   if (value === undefined) return;
   if (!isRecord(value)) fail(path, "must be a PatchObject");
   for (const [key, entry] of Object.entries(value)) {

@@ -1,4 +1,4 @@
-import type { Event, Group, Task } from "../types.js";
+import type { Event, Group, GroupPatch, Task } from "../types.js";
 import { deepClone, nowUtc } from "../utils.js";
 import { validateJsCalendarObject } from "../validate.js";
 import { applyCommonDefaults } from "./defaults.js";
@@ -8,7 +8,16 @@ import { Base } from "./base.js";
 import { normalizeEntry } from "./normalize.js";
 import { toUtcDateTime } from "./datetime.js";
 
-export class GroupObject extends Base<Group> {
+export class GroupObject extends Base<Group, GroupPatch, GroupObject> {
+  /**
+   * Wrap updated data in a new GroupObject.
+   * @param data Updated group data.
+   * @return New GroupObject instance.
+   */
+  protected wrap(data: Group): GroupObject {
+    const { "@type": _type, ...rest } = data;
+    return new GroupObject(rest, { validate: false });
+  }
   /**
    * Create a group with normalized entries and RFC defaults.
    * @param input Group input values to normalize.
@@ -43,24 +52,10 @@ export class GroupObject extends Base<Group> {
   }
 
   /**
-   * Append a normalized entry to the group.
-   * @param entry Event or task entry to add.
-   * @return Updated GroupObject instance.
-   */
-  addEntry(entry: Event | Task | { data: Event | Task }): this {
-    const entries = [...this.data.entries, normalizeEntry(entry)];
-    this.data.entries = entries;
-    this.touchKeys(["entries"]);
-    return this;
-  }
-
-  /**
    * Clone the group as a new GroupObject instance.
    * @return Cloned GroupObject.
    */
   override clone(): GroupObject {
-    const cloneData = deepClone(this.data);
-    const { "@type": _type, ...rest } = cloneData;
-    return new GroupObject(rest);
+    return this.wrap(deepClone(this.data));
   }
 }

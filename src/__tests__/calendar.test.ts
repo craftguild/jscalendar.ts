@@ -85,40 +85,65 @@ describe("JsCal.Event", () => {
   });
 });
 
-describe("Event.update", () => {
-  it("increments sequence on non-participant updates", () => {
+describe("Event.patch", () => {
+  it("increments sequence on non-participant patches", () => {
     const event = makeEvent();
-    event.update({ title: "Updated" }, { now: fixedNow });
-    expect(event.data.sequence).toBe(1);
-  });
-
-  it("does not increment sequence when only participants change", () => {
-    const event = makeEvent();
-    const initialSequence = event.data.sequence ?? 0;
-    event.addParticipant({ roles: { attendee: true }, email: "a@example.com" });
-    expect(event.data.sequence ?? 0).toBe(initialSequence);
+    const patched = event.patch({ title: "Updated" }, { now: fixedNow });
+    expect(patched.data.sequence).toBe(1);
+    expect(event.data.sequence).toBe(0);
   });
 
   it("respects touch=false", () => {
     const event = makeEvent();
     const before = event.data.updated;
-    event.update({ title: "No touch" }, { touch: false, now: () => "2026-02-02T00:00:00Z" });
-    expect(event.data.updated).toBe(before);
+    const patched = event.patch({ title: "No touch" }, { touch: false, now: () => "2026-02-02T00:00:00Z" });
+    expect(patched.data.updated).toBe(before);
   });
-});
 
-describe("Event.patch", () => {
   it("applies patch and updates metadata", () => {
     const event = makeEvent();
-    event.patch({ title: "Patched" }, { now: fixedNow });
-    expect(event.data.title).toBe("Patched");
-    expect(event.data.updated).toBe("2026-02-01T00:00:00Z");
-    expect(event.data.sequence).toBe(1);
+    const patched = event.patch({ title: "Patched" }, { now: fixedNow });
+    expect(patched.data.title).toBe("Patched");
+    expect(patched.data.updated).toBe("2026-02-01T00:00:00Z");
+    expect(patched.data.sequence).toBe(1);
   });
 
-  it("does not increment sequence for participants-only patch", () => {
+  it("allows patch to add nested maps with defaults", () => {
     const event = makeEvent();
-    event.patch(
+    const patched = event.patch(
+      {
+        locations: {
+          l1: { "@type": "Location", name: "Room A" },
+        },
+        virtualLocations: {
+          v1: { "@type": "VirtualLocation", uri: "https://example.com" },
+        },
+        participants: {
+          p1: { "@type": "Participant", roles: { attendee: true }, email: "a@example.com" },
+        },
+        alerts: {
+          a1: { "@type": "Alert", trigger: { "@type": "AbsoluteTrigger", when: "2026-02-01T01:00:00Z" } },
+        },
+        links: {
+          link1: { "@type": "Link", href: "https://example.com" },
+        },
+        relatedTo: {
+          r1: { "@type": "Relation", relation: { parent: true } },
+        },
+      },
+      { now: fixedNow },
+    );
+    expect(patched.data.locations?.l1?.name).toBe("Room A");
+    expect(patched.data.virtualLocations?.v1?.uri).toBe("https://example.com");
+    expect(patched.data.participants?.p1?.email).toBe("a@example.com");
+    expect(patched.data.alerts?.a1?.trigger?.["@type"]).toBe("AbsoluteTrigger");
+    expect(patched.data.links?.link1?.href).toBe("https://example.com");
+    expect(patched.data.relatedTo?.r1?.relation?.parent).toBe(true);
+  });
+
+  it("increments sequence for participants-only patch", () => {
+    const event = makeEvent();
+    const patched = event.patch(
       {
         participants: {
           p1: {
@@ -129,7 +154,7 @@ describe("Event.patch", () => {
       },
       { now: fixedNow },
     );
-    expect(event.data.sequence ?? 0).toBe(0);
+    expect(patched.data.sequence ?? 0).toBe(1);
   });
 });
 

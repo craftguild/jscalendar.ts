@@ -1,4 +1,4 @@
-import type { Event, JSCalendarObject, PatchObject, RecurrenceRule, Task, TimeZoneId } from "../types.js";
+import type { Event, JSCalendarObject, PatchLike, RecurrenceRule, Task, TimeZoneId } from "../types.js";
 import { applyPatch } from "../patch.js";
 import { dateTimeInTimeZone, localDateTimeFromDate, localDateTimeToUtcDate } from "../utils.js";
 import { TYPE_EVENT, TYPE_TASK } from "./constants.js";
@@ -6,7 +6,7 @@ import type { RecurrenceRange } from "./types.js";
 import { expandRule } from "./rules.js";
 
 /**
- * Expand recurrence into occurrences.
+ * Expand recurrence into occurrences sorted by recurrenceId/start.
  * @param items JSCalendar objects to expand.
  * @param range Date range bounds.
  * @return Generator of expanded occurrences.
@@ -15,14 +15,37 @@ export function* expandRecurrence(
   items: JSCalendarObject[],
   range: RecurrenceRange,
 ): Generator<JSCalendarObject> {
+  const occurrences: Array<{ value: JSCalendarObject; key?: string; index: number }> = [];
+  let index = 0;
+
   for (const item of items) {
     if (item["@type"] === TYPE_EVENT) {
-      yield* expandEvent(item, range);
-    } else if (item["@type"] === TYPE_TASK) {
-      yield* expandTask(item, range);
-    } else {
-      yield item;
+      for (const occurrence of expandEvent(item, range)) {
+        occurrences.push({ value: occurrence, key: occurrenceKey(occurrence), index });
+        index += 1;
+      }
+      continue;
     }
+    if (item["@type"] === TYPE_TASK) {
+      for (const occurrence of expandTask(item, range)) {
+        occurrences.push({ value: occurrence, key: occurrenceKey(occurrence), index });
+        index += 1;
+      }
+      continue;
+    }
+    occurrences.push({ value: item, key: occurrenceKey(item), index });
+    index += 1;
+  }
+
+  occurrences.sort((a, b) => {
+    if (a.key && b.key) return a.key.localeCompare(b.key);
+    if (a.key) return -1;
+    if (b.key) return 1;
+    return a.index - b.index;
+  });
+
+  for (const occurrence of occurrences) {
+    yield occurrence.value;
   }
 }
 
@@ -132,7 +155,7 @@ function* expandObject(
   anchor: string,
   rules?: RecurrenceRule[],
   excludedRules?: RecurrenceRule[],
-  overrides?: Record<string, PatchObject>,
+  overrides?: Record<string, PatchLike>,
   recurrenceIdTimeZone?: TimeZoneId | null,
 ): Generator<JSCalendarObject> {
   const hasZone = Boolean(recurrenceIdTimeZone);
@@ -227,7 +250,7 @@ function buildInstance(
   base: JSCalendarObject,
   recurrenceId: string,
   recurrenceIdTimeZone: TimeZoneId | null | undefined,
-  patch?: PatchObject,
+  patch?: PatchLike,
 ): JSCalendarObject | null {
   const patched = patch ? applyPatch(base, patch) : base;
   if (isExcludedInstance(patched)) {
@@ -270,7 +293,7 @@ function buildInstance(
  * @param key Field name to look up.
  * @return True when the patch modifies the field.
  */
-function patchHasKey(patch: PatchObject | undefined, key: string): boolean {
+function patchHasKey(patch: PatchLike | undefined, key: string): boolean {
   if (!patch) return false;
   if (Object.prototype.hasOwnProperty.call(patch, key)) return true;
   if (Object.prototype.hasOwnProperty.call(patch, `/${key}`)) return true;

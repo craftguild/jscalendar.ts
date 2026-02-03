@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { JsCal, createId, isEvent, isGroup, isTask } from "../jscal.js";
-import { Base } from "../jscal/base.js";
 
 const fixedNow = () => "2026-02-01T00:00:00Z";
 
@@ -15,14 +14,6 @@ function makeEvent(): InstanceType<typeof JsCal.Event> {
 }
 
 describe("JsCal helpers", () => {
-  it("creates group and adds entry", () => {
-    const group = new JsCal.Group({ entries: [] }, { now: fixedNow });
-
-    const event = makeEvent();
-    group.addEntry(event.data);
-    expect(group.data.entries.length).toBe(1);
-  });
-
   it("accepts JsCal instances and ejected entries in groups", () => {
     const event = makeEvent();
     const task = new JsCal.Task({ title: "Task", start: "2026-02-02T10:00:00" }, { now: fixedNow });
@@ -39,56 +30,10 @@ describe("JsCal helpers", () => {
     expect("addEntry" in event).toBe(false);
   });
 
-  it("adds locations and virtual locations", () => {
+  it("creates groups with normalized entries", () => {
     const event = makeEvent();
-    const locId = event.addLocation({ name: "Room A" });
-    const vlocId = event.addVirtualLocation({ name: "Zoom", uri: "https://example.com" });
-    const locations = event.data.locations;
-    const virtualLocations = event.data.virtualLocations;
-    expect(locations).toBeDefined();
-    expect(virtualLocations).toBeDefined();
-    if (!locations || !virtualLocations) throw new Error("Missing locations");
-    expect(locations[locId]?.name).toBe("Room A");
-    expect(virtualLocations[vlocId]?.uri).toBe("https://example.com");
-  });
-
-  it("adds participants and alerts", () => {
-    const event = makeEvent();
-    const participantId = event.addParticipant({ roles: { attendee: true }, email: "a@example.com" });
-    const alertId = event.addAlert({ trigger: { "@type": "AbsoluteTrigger", when: "2026-02-01T01:00:00Z" } });
-    const participants = event.data.participants;
-    const alerts = event.data.alerts;
-    expect(participants).toBeDefined();
-    expect(alerts).toBeDefined();
-    if (!participants || !alerts) throw new Error("Missing participants/alerts");
-    expect(participants[participantId]?.email).toBe("a@example.com");
-    expect(alerts[alertId]?.trigger).toBeTruthy();
-    expect(participants[participantId]?.participationStatus).toBe("needs-action");
-    expect(participants[participantId]?.expectReply).toBe(false);
-    expect(participants[participantId]?.scheduleAgent).toBe("server");
-    expect(participants[participantId]?.scheduleForceSend).toBe(false);
-    expect(participants[participantId]?.scheduleSequence).toBe(0);
-    expect(alerts[alertId]?.action).toBe("display");
-  });
-
-  it("defaults relativeTo for offset triggers", () => {
-    const event = makeEvent();
-    const alertId = event.addAlert({ trigger: { "@type": "OffsetTrigger", offset: "PT15M" } });
-    const alerts = event.data.alerts;
-    expect(alerts).toBeDefined();
-    if (!alerts) throw new Error("Missing alerts");
-    const trigger = alerts[alertId]?.trigger;
-    if (!trigger || trigger["@type"] !== "OffsetTrigger") throw new Error("Missing trigger");
-    expect(trigger.relativeTo).toBe("start");
-  });
-
-  it("updates sequence for alerts but not for participants", () => {
-    const event = makeEvent();
-    const initialSequence = event.data.sequence ?? 0;
-    event.addParticipant({ roles: { attendee: true }, email: "a@example.com" });
-    expect(event.data.sequence ?? 0).toBe(initialSequence);
-    event.addAlert({ trigger: { "@type": "AbsoluteTrigger", when: "2026-02-01T01:00:00Z" } });
-    expect(event.data.sequence ?? 0).toBe(initialSequence + 1);
+    const group = new JsCal.Group({ entries: [event] }, { now: fixedNow });
+    expect(group.data.entries.length).toBe(1);
   });
 
   it("clones and eject return deep copies", () => {
@@ -102,13 +47,6 @@ describe("JsCal helpers", () => {
     expect(event.data.title).toBe("Kickoff");
   });
 
-  it("clones Base instances with deep-copied data", () => {
-    const base = new Base({ "@type": "Event", uid: "base", updated: "2026-02-01T00:00:00Z", start: "2026-02-01T10:00:00" });
-    const cloned = base.clone();
-    cloned.data.uid = "changed";
-    expect(base.data.uid).toBe("base");
-  });
-
   it("builds participant inputs without @type", () => {
     const participant = JsCal.Participant({ name: "Alice", roles: { attendee: true } });
     const task = new JsCal.Task({
@@ -120,8 +58,8 @@ describe("JsCal helpers", () => {
 
   it("builds participant maps with stable ids", () => {
     const participants = JsCal.participants([
-      { name: "Alice", roles: { attendee: true } },
-      { name: "Bob", roles: { attendee: true } },
+      { value: { name: "Alice", roles: { attendee: true } } },
+      { value: { name: "Bob", roles: { attendee: true } } },
     ]);
     const task = new JsCal.Task({
       start: "2026-02-02T10:00:00",
@@ -240,8 +178,9 @@ describe("JsCal helpers", () => {
   it("supports get/set helpers", () => {
     const event = makeEvent();
     expect(event.get("title")).toBe("Kickoff");
-    event.set("title", "Updated");
-    expect(event.get("title")).toBe("Updated");
+    const updated = event.set("title", "Updated");
+    expect(event.get("title")).toBe("Kickoff");
+    expect(updated.get("title")).toBe("Updated");
   });
 
   it("exposes type guards", () => {

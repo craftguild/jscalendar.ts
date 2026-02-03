@@ -35,7 +35,7 @@ describe("validation", () => {
     );
   });
 
-  it("allows validation to be disabled for create, update, and patch", () => {
+  it("allows validation to be disabled for create and patch", () => {
     const event = new JsCal.Event(
       { start: "2026-02-01T10:00:00Z" },
       { validate: false },
@@ -43,8 +43,7 @@ describe("validation", () => {
 
     expect(event.get("start")).toBe("2026-02-01T10:00:00Z");
 
-    event.update({ start: "2026-02-01T10:00:00Z" }, { validate: false });
-    event.patch({ "/start": "2026-02-01T10:00:00Z" }, { validate: false });
+    event.patch({ start: "2026-02-01T10:00:00Z" }, { validate: false });
   });
 
   it("throws ValidationError with path and message", () => {
@@ -188,10 +187,15 @@ describe("validation", () => {
         },
       },
       localizations: {
-        en: { title: "Localized", keywords: ["a"] },
+        en: { title: "Localized", keywords: { a: true } },
       },
       recurrenceOverrides: {
-        "2026-02-02T10:00:00": { title: null, locations: ["x"] },
+        "2026-02-02T10:00:00": {
+          title: null,
+          locations: {
+            loc1: { "@type": "Location", name: "Room A" },
+          },
+        },
       },
       timeZones: {
         "Asia/Tokyo": {

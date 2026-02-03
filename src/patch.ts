@@ -1,4 +1,4 @@
-import type { JsonValue, PatchObject } from "./types.js";
+import type { PatchLike, PatchValue } from "./types.js";
 import { deepClone } from "./utils.js";
 
 const POINTER_SEPARATOR = "/";
@@ -78,7 +78,7 @@ function validatePrefixConflicts(pointers: string[]): void {
  * @param pointer Pointer for error context.
  * @return Nothing.
  */
-function assertNotArray(value: JsonValue | object | null, pointer: string): void {
+function assertNotArray(value: PatchValue | object | null, pointer: string): void {
   if (Array.isArray(value)) {
     throw new PatchError(`Patch pointer references into array: ${pointer}`);
   }
@@ -90,7 +90,7 @@ function assertNotArray(value: JsonValue | object | null, pointer: string): void
  * @param pointer Pointer for error context.
  * @return Nothing.
  */
-function assertObject(value: JsonValue | object | null, pointer: string): asserts value is Record<string, JsonValue> {
+function assertObject(value: PatchValue | object | null, pointer: string): asserts value is Record<string, PatchValue> {
   if (value === null || typeof value !== TYPE_OBJECT || Array.isArray(value)) {
     throw new PatchError(`Patch pointer references missing or non-object path: ${pointer}`);
   }
@@ -102,7 +102,7 @@ function assertObject(value: JsonValue | object | null, pointer: string): assert
  * @param pointer Pointer for error context.
  * @return Nothing.
  */
-function assertRecord(value: object, pointer: string): asserts value is Record<string, JsonValue> {
+function assertRecord(value: object, pointer: string): asserts value is Record<string, PatchValue> {
   if (value === null || Array.isArray(value)) {
     throw new PatchError(`Patch pointer references missing or non-object path: ${pointer}`);
   }
@@ -114,7 +114,7 @@ function assertRecord(value: object, pointer: string): asserts value is Record<s
  * @param patch Patch entries to apply.
  * @return Nothing.
  */
-function applyPatchEntries(target: Record<string, JsonValue>, patch: PatchObject): void {
+function applyPatchEntries(target: Record<string, PatchValue>, patch: PatchLike): void {
   for (const [rawPointer, value] of Object.entries(patch)) {
     const pointer = normalizePointer(rawPointer);
     const segments = splitPointer(pointer);
@@ -131,10 +131,10 @@ function applyPatchEntries(target: Record<string, JsonValue>, patch: PatchObject
  * @return Nothing.
  */
 function applyPointerSegments(
-  target: Record<string, JsonValue>,
+  target: Record<string, PatchValue>,
   pointer: string,
   segments: string[],
-  value: JsonValue,
+  value: PatchValue,
 ): void {
   let current = target;
   for (let i = 0; i < segments.length; i += 1) {
@@ -177,12 +177,12 @@ function isLastSegment(index: number, length: number): boolean {
  * @return Next record to traverse.
  */
 function applySegment(
-  current: Record<string, JsonValue>,
+  current: Record<string, PatchValue>,
   segment: string,
   isLast: boolean,
-  value: JsonValue,
+  value: PatchValue,
   pointer: string,
-): Record<string, JsonValue> {
+): Record<string, PatchValue> {
   assertNotArray(current, pointer);
   assertRecord(current, pointer);
 
@@ -201,7 +201,7 @@ function applySegment(
  * @param value Patch value.
  * @return Nothing.
  */
-function applyValueAtSegment(current: Record<string, JsonValue>, segment: string, value: JsonValue): void {
+function applyValueAtSegment(current: Record<string, PatchValue>, segment: string, value: PatchValue): void {
   if (value === null) {
     if (Object.prototype.hasOwnProperty.call(current, segment)) {
       delete current[segment];
@@ -219,10 +219,10 @@ function applyValueAtSegment(current: Record<string, JsonValue>, segment: string
  * @return Next record to traverse.
  */
 function getNextRecord(
-  current: Record<string, JsonValue>,
+  current: Record<string, PatchValue>,
   segment: string,
   pointer: string,
-): Record<string, JsonValue> {
+): Record<string, PatchValue> {
   if (!Object.prototype.hasOwnProperty.call(current, segment)) {
     throw new PatchError(`Patch pointer missing path: ${pointer}`);
   }
@@ -240,7 +240,7 @@ function getNextRecord(
  * @param patch Patch object to apply.
  * @return Patched clone of the input object.
  */
-export function applyPatch<T extends object>(input: T, patch: PatchObject): T {
+export function applyPatch<T extends object>(input: T, patch: PatchLike): T {
   const pointers = Object.keys(patch);
   validatePrefixConflicts(pointers);
 

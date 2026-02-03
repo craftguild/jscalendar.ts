@@ -1,4 +1,4 @@
-import type { Task } from "../types.js";
+import type { Task, TaskPatch } from "../types.js";
 import { resolveTimeZone } from "../timezones.js";
 import { deepClone, nowUtc } from "../utils.js";
 import { validateJsCalendarObject } from "../validate.js";
@@ -8,7 +8,17 @@ import { toLocalDateTime, toUtcDateTime } from "./datetime.js";
 import type { CreateOptions, TaskInput } from "./types.js";
 import { Base } from "./base.js";
 
-export class TaskObject extends Base<Task> {
+export class TaskObject extends Base<Task, TaskPatch, TaskObject> {
+  /**
+   * Wrap updated data in a new TaskObject.
+   * @param data Updated task data.
+   * @return New TaskObject instance.
+   */
+  protected wrap(data: Task): TaskObject {
+    const { "@type": _type, ...rest } = data;
+    return new TaskObject(rest, { validate: false });
+  }
+
   /**
    * Create a task with normalized date fields and RFC defaults applied.
    * @param input Task input values to normalize.
@@ -59,8 +69,6 @@ export class TaskObject extends Base<Task> {
    * @return Cloned TaskObject.
    */
   override clone(): TaskObject {
-    const cloneData = deepClone(this.data);
-    const { "@type": _type, ...rest } = cloneData;
-    return new TaskObject(rest);
+    return this.wrap(deepClone(this.data));
   }
 }

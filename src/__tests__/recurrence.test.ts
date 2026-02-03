@@ -11,6 +11,28 @@ function collect(gen: Generator<JSCalendarObject>): JSCalendarObject[] {
 }
 
 describe("recurrence expansion", () => {
+  it("sorts occurrences by recurrenceId across items", () => {
+    const first = new JsCal.Event({
+      title: "First",
+      start: "2026-02-01T09:00:00",
+    });
+    const second = new JsCal.Event({
+      title: "Second",
+      start: "2026-02-03T09:00:00",
+    });
+
+    const occ = collect(JsCal.expandRecurrence([second, first], {
+      from: new Date("2026-02-01"),
+      to: new Date("2026-02-10"),
+    }));
+
+    const starts = occ.map((o) => o.recurrenceId ?? ("start" in o ? o.start : undefined));
+    expect(starts).toEqual([
+      "2026-02-01T09:00:00",
+      "2026-02-03T09:00:00",
+    ]);
+  });
+
   it("expands weekly byDay", () => {
     const event = new JsCal.Event({
       title: "Weekly",
@@ -616,7 +638,7 @@ describe("recurrence expansion", () => {
         { "@type": "RecurrenceRule", frequency: "daily", count: 2 },
       ],
       recurrenceOverrides: {
-        "2026-02-02T10:00:00": { "/due": "2026-02-05T10:00:00" },
+        "2026-02-02T10:00:00": { due: "2026-02-05T10:00:00" },
       },
     });
 

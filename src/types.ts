@@ -12,7 +12,38 @@ export type SignedDuration = string;
 export type BooleanMap = Record<string, true>;
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
-export type PatchObject = Record<string, JsonValue | null>;
+export type PatchValue = JsonValue | null;
+export interface PatchObject {
+  [key: string]: PatchValue;
+}
+
+type PatchFields<T> = {
+  [K in keyof Omit<T, "@type">]?: T[K] | null;
+};
+
+type PatchTag<TTag extends string> = { __patchType?: TTag };
+
+export type EventPatch = PatchFields<Event> & PatchTag<"Event">;
+export type TaskPatch = PatchFields<Task> & PatchTag<"Task">;
+export type GroupPatch = PatchFields<Group> & PatchTag<"Group">;
+export type ParticipantPatch = PatchFields<Participant>;
+export type LocationPatch = PatchFields<Location>;
+export type VirtualLocationPatch = PatchFields<VirtualLocation>;
+export type AlertPatch = PatchFields<Alert>;
+export type RelationPatch = PatchFields<Relation>;
+export type LinkPatch = PatchFields<Link>;
+export type TimeZonePatch = PatchFields<TimeZone>;
+export type TimeZoneRulePatch = PatchFields<TimeZoneRule>;
+export type RecurrenceRulePatch = PatchFields<RecurrenceRule>;
+export type NDayPatch = PatchFields<NDay>;
+
+export type PatchLike =
+  | PatchObject
+  | EventPatch
+  | TaskPatch
+  | GroupPatch
+  | TimeZoneRulePatch;
+
 
 export interface Relation {
   "@type": "Relation";
@@ -138,7 +169,7 @@ export interface TimeZoneRule {
   offsetFrom: string;
   offsetTo: string;
   recurrenceRules?: RecurrenceRule[];
-  recurrenceOverrides?: Record<LocalDateTime, PatchObject>;
+  recurrenceOverrides?: Record<LocalDateTime, TimeZoneRulePatch>;
   names?: BooleanMap;
   comments?: string[];
 }
@@ -178,7 +209,6 @@ export interface JSCalendarCommon {
   recurrenceIdTimeZone?: TimeZoneId | null;
   recurrenceRules?: RecurrenceRule[];
   excludedRecurrenceRules?: RecurrenceRule[];
-  recurrenceOverrides?: Record<LocalDateTime, PatchObject>;
   excluded?: boolean;
   priority?: Int;
   freeBusyStatus?: string;
@@ -189,7 +219,6 @@ export interface JSCalendarCommon {
   requestStatus?: string;
   useDefaultAlerts?: boolean;
   alerts?: Record<Id, Alert>;
-  localizations?: Record<string, PatchObject>;
   timeZone?: TimeZoneId | null;
   timeZones?: Partial<Record<TimeZoneId, TimeZone>>;
 }
@@ -199,6 +228,8 @@ export interface Event extends JSCalendarCommon {
   start: LocalDateTime;
   duration?: Duration;
   status?: string;
+  localizations?: Record<string, EventPatch>;
+  recurrenceOverrides?: Record<LocalDateTime, EventPatch>;
 }
 
 export interface Task extends JSCalendarCommon {
@@ -209,12 +240,16 @@ export interface Task extends JSCalendarCommon {
   percentComplete?: UnsignedInt;
   progress?: string;
   progressUpdated?: UTCDateTime;
+  localizations?: Record<string, TaskPatch>;
+  recurrenceOverrides?: Record<LocalDateTime, TaskPatch>;
 }
 
 export interface Group extends JSCalendarCommon {
   "@type": "Group";
   entries: Array<Event | Task>;
   source?: string;
+  localizations?: Record<string, GroupPatch>;
+  recurrenceOverrides?: Record<LocalDateTime, GroupPatch>;
 }
 
 export type JSCalendarObject = Event | Task | Group;

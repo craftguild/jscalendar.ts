@@ -1,9 +1,19 @@
 # Changelog
 
-## 0.3.1
+## 0.5.0
 
-- Chore: remove local `main.ts` playground file.
-- Release: bump package version to 0.3.1.
+- Breaking: remove `update` API; use `patch` for updates.
+- Breaking: remove `addLocation/addVirtualLocation/addParticipant/addAlert` helpers; use `patch` for nested updates.
+- Breaking: make JsCal id-map helpers accept only `{ id?, value }` entries.
+- Feature: expose `JsCal.isEvent/isTask/isGroup` and `JsCal.ByDay` alias.
+- Feature: add `EventPatch/TaskPatch/GroupPatch` helpers and typed patch maps.
+- Feature: sort `expandRecurrence` output by recurrence id/start.
+- Docs/Tests: update Quick Start, add sorted recurrence test, and align tests with immutable API.
+
+## 0.4.1
+
+- Fix: enforce required participant roles and reject empty role sets.
+- Docs/Tests: update README examples and add validation coverage for roles.
 
 ## 0.4.0
 
@@ -12,10 +22,9 @@
 - Fix: clamp negative numeric event durations to zero when normalizing.
 - Docs/Tests: update README examples and expand builder/duration tests.
 
-## 0.4.1
+## 0.3.1
 
-- Fix: enforce required participant roles and reject empty role sets.
-- Docs/Tests: update README examples and add validation coverage for roles.
+- Chore: remove local `main.ts` playground file.
 
 ## 0.3.0
 

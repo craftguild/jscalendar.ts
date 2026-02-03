@@ -1,13 +1,17 @@
 import type {
   Alert,
   AbsoluteTrigger,
+  EventPatch,
+  GroupPatch,
   Link,
   Location,
   NDay,
   OffsetTrigger,
+  PatchObject,
   Participant,
   RecurrenceRule,
   Relation,
+  TaskPatch,
   TimeZone,
   TimeZoneRule,
   VirtualLocation,
@@ -17,7 +21,7 @@ import { createId } from "./ids.js";
 import { validateAlert, validateLink, validateLocation, validateParticipant, validateRelation, validateTimeZoneObject, validateTimeZoneRule, validateVirtualLocation } from "../validate/validators-common.js";
 import { validateNDay, validateRecurrenceRule } from "../validate/validators-recurrence.js";
 import { fail } from "../validate/error.js";
-import { assertSignedDuration, assertString, assertUtcDateTime } from "../validate/asserts.js";
+import { assertPatchObject, assertSignedDuration, assertString, assertUtcDateTime } from "../validate/asserts.js";
 
 const TYPE_PARTICIPANT = "Participant";
 const TYPE_LOCATION = "Location";
@@ -46,6 +50,10 @@ export type TimeZoneInput = WithOptionalType<TimeZone, typeof TYPE_TIME_ZONE>;
 export type TimeZoneRuleInput = WithOptionalType<TimeZoneRule, typeof TYPE_TIME_ZONE_RULE>;
 export type RecurrenceRuleInput = WithOptionalType<RecurrenceRule, typeof TYPE_RECURRENCE_RULE>;
 export type NDayInput = WithOptionalType<NDay, typeof TYPE_NDAY>;
+export type EventPatchInput = EventPatch;
+export type TaskPatchInput = TaskPatch;
+export type GroupPatchInput = GroupPatch;
+export type IdValueInput<TInput> = { id?: Id; value: TInput };
 
 /**
  * Build a Participant object with @type set and validated.
@@ -217,77 +225,136 @@ export function buildNDay(input: NDayInput): NDay {
 }
 
 /**
- * Build a record keyed by generated Ids.
- * @param items Items to store.
+ * Build a patch object for Event-like updates with JSON value validation.
+ * @param input Patch fields for an event.
+ * @return Validated PatchObject.
+ */
+export function buildEventPatch(input: EventPatchInput): EventPatch {
+  const patch: EventPatch = { ...input };
+  assertPatchObject(patch, "eventPatch");
+  return patch;
+}
+
+/**
+ * Build a patch object for Task-like updates with JSON value validation.
+ * @param input Patch fields for a task.
+ * @return Validated PatchObject.
+ */
+export function buildTaskPatch(input: TaskPatchInput): TaskPatch {
+  const patch: TaskPatch = { ...input };
+  assertPatchObject(patch, "taskPatch");
+  return patch;
+}
+
+/**
+ * Build a patch object for Group-like updates with JSON value validation.
+ * @param input Patch fields for a group.
+ * @return Validated PatchObject.
+ */
+export function buildGroupPatch(input: GroupPatchInput): GroupPatch {
+  const patch: GroupPatch = { ...input };
+  assertPatchObject(patch, "groupPatch");
+  return patch;
+}
+
+/**
+ * Build a record keyed by Ids, optionally merging into an existing record.
+ * @param items Items to store with optional explicit ids.
  * @param builder Builder function to validate each item.
- * @param idFn Optional ID generator.
- * @return Record keyed by generated Ids.
+ * @param idFn Optional ID generator for items without explicit ids.
+ * @param existing Existing record to merge into.
+ * @return Record keyed by ids with merged values.
  */
 export function buildIdMap<TInput, TOutput>(
-  items: TInput[],
+  items: Array<IdValueInput<TInput>>,
   builder: (input: TInput) => TOutput,
   idFn: (input: TInput, index: number) => Id = () => createId(),
+  existing?: Record<Id, TOutput>,
 ): Record<Id, TOutput> {
-  const result: Record<Id, TOutput> = {};
+  const result: Record<Id, TOutput> = existing ? { ...existing } : {};
   items.forEach((item, index) => {
-    const id = idFn(item, index);
-    result[id] = builder(item);
+    const id = item.id ?? idFn(item.value, index);
+    result[id] = builder(item.value);
   });
   return result;
 }
 
 /**
- * Build a record of Participant objects keyed by generated Ids.
- * @param items Participant inputs.
+ * Build a record of Participant objects keyed by Ids.
+ * @param items Participant inputs with optional explicit ids.
+ * @param existing Existing participant record to merge into.
  * @return Participant record keyed by Id.
  */
-export function buildParticipants(items: ParticipantInput[]): Record<Id, Participant> {
-  return buildIdMap(items, buildParticipant);
+export function buildParticipants(
+  items: Array<IdValueInput<ParticipantInput>>,
+  existing?: Record<Id, Participant>,
+): Record<Id, Participant> {
+  return buildIdMap(items, buildParticipant, () => createId(), existing);
 }
 
 /**
- * Build a record of Location objects keyed by generated Ids.
- * @param items Location inputs.
+ * Build a record of Location objects keyed by Ids.
+ * @param items Location inputs with optional explicit ids.
+ * @param existing Existing location record to merge into.
  * @return Location record keyed by Id.
  */
-export function buildLocations(items: LocationInput[]): Record<Id, Location> {
-  return buildIdMap(items, buildLocation);
+export function buildLocations(
+  items: Array<IdValueInput<LocationInput>>,
+  existing?: Record<Id, Location>,
+): Record<Id, Location> {
+  return buildIdMap(items, buildLocation, () => createId(), existing);
 }
 
 /**
- * Build a record of VirtualLocation objects keyed by generated Ids.
- * @param items VirtualLocation inputs.
+ * Build a record of VirtualLocation objects keyed by Ids.
+ * @param items VirtualLocation inputs with optional explicit ids.
+ * @param existing Existing virtual location record to merge into.
  * @return VirtualLocation record keyed by Id.
  */
-export function buildVirtualLocations(items: VirtualLocationInput[]): Record<Id, VirtualLocation> {
-  return buildIdMap(items, buildVirtualLocation);
+export function buildVirtualLocations(
+  items: Array<IdValueInput<VirtualLocationInput>>,
+  existing?: Record<Id, VirtualLocation>,
+): Record<Id, VirtualLocation> {
+  return buildIdMap(items, buildVirtualLocation, () => createId(), existing);
 }
 
 /**
- * Build a record of Alert objects keyed by generated Ids.
- * @param items Alert inputs.
+ * Build a record of Alert objects keyed by Ids.
+ * @param items Alert inputs with optional explicit ids.
+ * @param existing Existing alert record to merge into.
  * @return Alert record keyed by Id.
  */
-export function buildAlerts(items: AlertInput[]): Record<Id, Alert> {
-  return buildIdMap(items, buildAlert);
+export function buildAlerts(
+  items: Array<IdValueInput<AlertInput>>,
+  existing?: Record<Id, Alert>,
+): Record<Id, Alert> {
+  return buildIdMap(items, buildAlert, () => createId(), existing);
 }
 
 /**
- * Build a record of Link objects keyed by generated Ids.
- * @param items Link inputs.
+ * Build a record of Link objects keyed by Ids.
+ * @param items Link inputs with optional explicit ids.
+ * @param existing Existing link record to merge into.
  * @return Link record keyed by Id.
  */
-export function buildLinks(items: LinkInput[]): Record<Id, Link> {
-  return buildIdMap(items, buildLink);
+export function buildLinks(
+  items: Array<IdValueInput<LinkInput>>,
+  existing?: Record<Id, Link>,
+): Record<Id, Link> {
+  return buildIdMap(items, buildLink, () => createId(), existing);
 }
 
 /**
- * Build a record of Relation objects keyed by generated Ids.
- * @param items Relation inputs.
+ * Build a record of Relation objects keyed by Ids.
+ * @param items Relation inputs with optional explicit ids.
+ * @param existing Existing relation record to merge into.
  * @return Relation record keyed by Id.
  */
-export function buildRelatedTo(items: RelationInput[]): Record<Id, Relation> {
-  return buildIdMap(items, buildRelation);
+export function buildRelatedTo(
+  items: Array<IdValueInput<RelationInput>>,
+  existing?: Record<Id, Relation>,
+): Record<Id, Relation> {
+  return buildIdMap(items, buildRelation, () => createId(), existing);
 }
 
 /**

@@ -51,19 +51,37 @@ describe("builders", () => {
 
   it("builds id maps with generated ids", () => {
     const participants = JsCal.participants([
-      { name: "Alice", roles: { attendee: true } },
-      { name: "Bob", roles: { attendee: true } },
+      { value: { name: "Alice", roles: { attendee: true } } },
+      { value: { name: "Bob", roles: { attendee: true } } },
     ]);
     expect(Object.keys(participants).length).toBe(2);
 
-    const locations = JsCal.locations([{ name: "Room A" }]);
+    const locations = JsCal.locations([{ value: { name: "Room A" } }]);
     expect(Object.keys(locations).length).toBe(1);
 
-    const links = JsCal.links([{ href: "https://example.com" }]);
+    const links = JsCal.links([{ value: { href: "https://example.com" } }]);
     expect(Object.keys(links).length).toBe(1);
 
-    const related = JsCal.relatedTo([{ relation: { parent: true } }]);
+    const related = JsCal.relatedTo([{ value: { relation: { parent: true } } }]);
     expect(Object.keys(related).length).toBe(1);
+  });
+
+  it("merges id maps with explicit ids", () => {
+    const existing = JsCal.locations([{ id: "loc-1", value: { name: "Room A" } }]);
+    const merged = JsCal.locations(
+      [
+        { id: "loc-1", value: { name: "Room A Updated" } },
+        { value: { name: "Room B" } },
+      ],
+      existing,
+    );
+    expect(existing["loc-1"]?.name).toBe("Room A");
+    expect(merged["loc-1"]?.name).toBe("Room A Updated");
+    expect(Object.keys(merged).length).toBe(2);
+  });
+
+  it("rejects wrapper inputs that mix value and direct fields", () => {
+    expect(() => JsCal.locations([{ name: "Room A" } as never ])).toThrowError();
   });
 
   it("builds a time zone map keyed by tzId", () => {
@@ -74,7 +92,7 @@ describe("builders", () => {
   });
 
   it("buildIdMap uses a custom id function", () => {
-    const map = buildIdMap([{ name: "A" }], (item) => item, (_item, index) => `id-${index}`);
+    const map = buildIdMap([{ value: { name: "A" } }], (item) => item, (_item, index) => `id-${index}`);
     expect(Object.keys(map)).toEqual(["id-0"]);
   });
 

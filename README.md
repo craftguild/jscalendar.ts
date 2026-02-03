@@ -22,14 +22,38 @@ pnpm add @craftguild/jscalendar
 ```ts
 import { JsCal } from "@craftguild/jscalendar";
 
+// Create a recurring event and a simple task, then expand occurrences.
 const event = new JsCal.Event({
-  title: "Kickoff",
-  start: "2026-02-03T09:00:00",
-  timeZone: "America/New_York",
-  duration: "PT1H",
+  title: "Weekly Sync",
+  start: new Date(2026, 0, 1, 0, 0, 0, 0),
+  recurrenceRules: [
+    JsCal.RecurrenceRule({
+      frequency: "weekly",
+      byDay: [JsCal.ByDay({ day: "th" })],
+    }),
+  ],
 });
 
-const items = [event.eject()];
+const task = new JsCal.Task({
+  title: "Prepare Notes",
+  start: new Date(2026, 0, 1, 0, 0, 0, 0),
+});
+
+const from = new Date(2026, 0, 1, 0, 0, 0, 0);
+const to = new Date(2026, 0, 31, 0, 0, 0, 0);
+const generator = JsCal.expandRecurrence([event, task], { from, to });
+
+for (const item of generator) {
+  // Expanded JSCalendar objects for events and tasks in the range.
+  console.log(JSON.stringify(item));
+}
+```
+
+Sample output (truncated):
+```txt
+{"title":"Weekly Sync","@type":"Event","start":"2026-01-01T00:00:00",...}
+{"title":"Prepare Notes","@type":"Task","start":"2026-01-01T00:00:00",...}
+{"title":"Weekly Sync","@type":"Event","start":"2026-01-08T00:00:00",...}
 ```
 
 ## Object Creation
@@ -58,6 +82,20 @@ const task = new JsCal.Task({
   due: "2026-02-11T17:00:00",
   percentComplete: 10,
 });
+```
+
+Id maps use `{ id, value }` entries. If you need to merge into an
+existing map, pass it as the second argument. Entries with `id` overwrite
+matching ids; entries without `id` get new generated ids.
+
+```ts
+const mergedLocations = JsCal.locations(
+  [
+    { id: "l1", value: { name: "Room A Updated" } },
+    { value: { name: "Room B" } },
+  ],
+  existingLocations,
+);
 ```
 
 ### Group
@@ -93,14 +131,14 @@ const task = new JsCal.Task({
   title: "Write report",
   start: "2026-02-11T09:00:00",
   participants: JsCal.participants([
-    JsCal.Participant({ name: "Alice", email: "a@example.com", roles: { attendee: true } }),
-    JsCal.Participant({ name: "Bob", roles: { attendee: true } }),
+    { value: JsCal.Participant({ name: "Alice", email: "a@example.com", roles: { attendee: true } }) },
+    { value: JsCal.Participant({ name: "Bob", roles: { attendee: true } }) },
   ]),
   locations: JsCal.locations([
-    JsCal.Location({ name: "Room A" }),
+    { value: JsCal.Location({ name: "Room A" }) },
   ]),
   alerts: JsCal.alerts([
-    JsCal.Alert({ trigger: JsCal.OffsetTrigger({ offset: JsCal.duration.minutes(-15) }) }),
+    { value: JsCal.Alert({ trigger: JsCal.OffsetTrigger({ offset: JsCal.duration.minutes(-15) }) }) },
   ]),
 });
 ```
@@ -112,7 +150,7 @@ const task = new JsCal.Task({
   title: "Imported task",
   start: "2026-02-11T09:00:00",
   participants: {
-    p1: { "@type": "Participant", name: "Alice", email: "a@example.com" },
+    p1: { "@type": "Participant", name: "Alice", email: "a@example.com", roles: { attendee: true } },
   },
   locations: {
     l1: { "@type": "Location", name: "Room A" },
@@ -143,8 +181,8 @@ clone of that underlying JSCalendar object for serialization, storage,
 or passing across app boundaries.
 
 Why `eject()` exists:
-- Class instances are convenient for building and mutating objects with
-  helpers like `update`, `patch`, and `addParticipant`.
+- Class instances are convenient for building and updating objects with
+  helpers like `patch`.
 - External APIs, storage layers, and JSON stringify expect plain objects.
 - A deep clone makes it safe to hand off data without accidental mutation
   from the original instance (and vice versa).
@@ -163,25 +201,18 @@ JSON.stringify(plain);
 
 // Changes do not affect each other.
 plain.title = "Exported";
-event.update({ title: "Live" });
+const updated = event.patch({ title: "Live" });
 ```
 
 ## Updates and Mutations
 
-Mutation helpers update the underlying data and keep metadata such as
-`updated` and `sequence` consistent. Use `update` for shallow updates
-and `patch` for RFC 8984 PatchObject semantics.
+Patch helpers return new instances and keep metadata such as
+`updated` and `sequence` consistent. Use `patch` for RFC 8984 PatchObject
+semantics.
 
 ```ts
-event.update({ title: "Updated title" });
-event.patch({ title: "Patched title" });
-
-event.addLocation({ name: "Room A" });
-event.addVirtualLocation({ name: "Zoom", uri: "https://example.com" });
-event.addParticipant({ roles: { attendee: true }, email: "a@example.com" });
-event.addAlert({
-  trigger: { "@type": "AbsoluteTrigger", when: "2026-02-10T09:00:00Z" },
-});
+const patchedEvent = event.patch({ title: "Updated title" });
+const patchedAgain = patchedEvent.patch({ title: "Patched title" });
 ```
 
 ## Date Inputs and Time Zones
