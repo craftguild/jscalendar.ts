@@ -1,34 +1,49 @@
 {
-  "name": "@craftguild/jscalendar",
-  "version": "0.5.3",
-  "description": "RFC 8984 (JSCalendar) data model helpers for TypeScript",
-  "license": "MIT",
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+    "name": "@craftguild/jscalendar",
+    "version": "0.5.4",
+    "description": "RFC 8984 (JSCalendar) data model helpers for TypeScript",
+    "license": "MIT",
+    "type": "module",
+    "main": "dist/index.cjs",
+    "module": "dist/index.mjs",
+    "types": "dist/index.d.mts",
+    "exports": {
+        ".": {
+            "types": {
+                "import": "./dist/index.d.mts",
+                "require": "./dist/index.d.cts"
+            },
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.cjs",
+            "default": "./dist/index.mjs"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "prepublish": "tsdown",
+        "build": "tsc -p tsconfig.json",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage",
+        "prepare": "husky"
+    },
+    "devDependencies": {
+        "@vitest/coverage-v8": "^2.1.9",
+        "husky": "^9.1.7",
+        "lint-staged": "^16.2.7",
+        "prettier": "3.8.1",
+        "tsdown": "^0.20.1",
+        "tsx": "^4.21.0",
+        "typescript": "^5.6.2",
+        "vitest": "^2.1.9"
+    },
+    "dependencies": {
+        "date-fns": "^4.1.0",
+        "date-fns-tz": "^3.2.0"
+    },
+    "lint-staged": {
+        "**/*": "prettier --write --ignore-unknown"
     }
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
-  },
-  "devDependencies": {
-    "@vitest/coverage-v8": "^2.1.9",
-    "tsx": "^4.21.0",
-    "typescript": "^5.6.2",
-    "vitest": "^2.1.9"
-  },
-  "dependencies": {
-    "date-fns": "^4.1.0",
-    "date-fns-tz": "^3.2.0"
-  }
 }

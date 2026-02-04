@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.4
+
+- Fix: export timezone types as type-only to avoid tsdown warnings.
+- Build: publish dual ESM/CJS exports with conditional type definitions.
+- Chore: configure Prettier for 4-space indentation using spaces.
+
 ## 0.5.2
 
 - Docs: refresh the README logo asset and constrain display height.

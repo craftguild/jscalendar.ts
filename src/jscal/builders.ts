@@ -1,27 +1,44 @@
 import type {
-  Alert,
-  AbsoluteTrigger,
-  EventPatch,
-  GroupPatch,
-  Link,
-  Location,
-  NDay,
-  OffsetTrigger,
-  PatchObject,
-  Participant,
-  RecurrenceRule,
-  Relation,
-  TaskPatch,
-  TimeZone,
-  TimeZoneRule,
-  VirtualLocation,
-  Id,
+    Alert,
+    AbsoluteTrigger,
+    EventPatch,
+    GroupPatch,
+    Link,
+    Location,
+    NDay,
+    OffsetTrigger,
+    PatchObject,
+    Participant,
+    RecurrenceRule,
+    Relation,
+    TaskPatch,
+    TimeZone,
+    TimeZoneRule,
+    VirtualLocation,
+    Id,
 } from "../types.js";
 import { createId } from "./ids.js";
-import { validateAlert, validateLink, validateLocation, validateParticipant, validateRelation, validateTimeZoneObject, validateTimeZoneRule, validateVirtualLocation } from "../validate/validators-common.js";
-import { validateNDay, validateRecurrenceRule } from "../validate/validators-recurrence.js";
+import {
+    validateAlert,
+    validateLink,
+    validateLocation,
+    validateParticipant,
+    validateRelation,
+    validateTimeZoneObject,
+    validateTimeZoneRule,
+    validateVirtualLocation,
+} from "../validate/validators-common.js";
+import {
+    validateNDay,
+    validateRecurrenceRule,
+} from "../validate/validators-recurrence.js";
 import { fail } from "../validate/error.js";
-import { assertPatchObject, assertSignedDuration, assertString, assertUtcDateTime } from "../validate/asserts.js";
+import {
+    assertPatchObject,
+    assertSignedDuration,
+    assertString,
+    assertUtcDateTime,
+} from "../validate/asserts.js";
 
 const TYPE_PARTICIPANT = "Participant";
 const TYPE_LOCATION = "Location";
@@ -36,19 +53,39 @@ const TYPE_TIME_ZONE_RULE = "TimeZoneRule";
 const TYPE_RECURRENCE_RULE = "RecurrenceRule";
 const TYPE_NDAY = "NDay";
 
-type WithOptionalType<T, TypeName extends string> = Omit<T, "@type"> & { "@type"?: TypeName };
+type WithOptionalType<T, TypeName extends string> = Omit<T, "@type"> & {
+    "@type"?: TypeName;
+};
 
-export type ParticipantInput = WithOptionalType<Participant, typeof TYPE_PARTICIPANT>;
+export type ParticipantInput = WithOptionalType<
+    Participant,
+    typeof TYPE_PARTICIPANT
+>;
 export type LocationInput = WithOptionalType<Location, typeof TYPE_LOCATION>;
-export type VirtualLocationInput = WithOptionalType<VirtualLocation, typeof TYPE_VIRTUAL_LOCATION>;
+export type VirtualLocationInput = WithOptionalType<
+    VirtualLocation,
+    typeof TYPE_VIRTUAL_LOCATION
+>;
 export type AlertInput = WithOptionalType<Alert, typeof TYPE_ALERT>;
-export type OffsetTriggerInput = WithOptionalType<OffsetTrigger, typeof TYPE_OFFSET_TRIGGER>;
-export type AbsoluteTriggerInput = WithOptionalType<AbsoluteTrigger, typeof TYPE_ABSOLUTE_TRIGGER>;
+export type OffsetTriggerInput = WithOptionalType<
+    OffsetTrigger,
+    typeof TYPE_OFFSET_TRIGGER
+>;
+export type AbsoluteTriggerInput = WithOptionalType<
+    AbsoluteTrigger,
+    typeof TYPE_ABSOLUTE_TRIGGER
+>;
 export type RelationInput = WithOptionalType<Relation, typeof TYPE_RELATION>;
 export type LinkInput = WithOptionalType<Link, typeof TYPE_LINK>;
 export type TimeZoneInput = WithOptionalType<TimeZone, typeof TYPE_TIME_ZONE>;
-export type TimeZoneRuleInput = WithOptionalType<TimeZoneRule, typeof TYPE_TIME_ZONE_RULE>;
-export type RecurrenceRuleInput = WithOptionalType<RecurrenceRule, typeof TYPE_RECURRENCE_RULE>;
+export type TimeZoneRuleInput = WithOptionalType<
+    TimeZoneRule,
+    typeof TYPE_TIME_ZONE_RULE
+>;
+export type RecurrenceRuleInput = WithOptionalType<
+    RecurrenceRule,
+    typeof TYPE_RECURRENCE_RULE
+>;
 export type NDayInput = WithOptionalType<NDay, typeof TYPE_NDAY>;
 export type EventPatchInput = EventPatch;
 export type TaskPatchInput = TaskPatch;
@@ -61,12 +98,12 @@ export type IdValueInput<TInput> = { id?: Id; value: TInput };
  * @return Validated Participant object.
  */
 export function buildParticipant(input: ParticipantInput): Participant {
-  if (input["@type"] && input["@type"] !== TYPE_PARTICIPANT) {
-    fail("participant", `must have @type ${TYPE_PARTICIPANT}`);
-  }
-  const participant: Participant = { ...input, "@type": TYPE_PARTICIPANT };
-  validateParticipant(participant, "participant");
-  return participant;
+    if (input["@type"] && input["@type"] !== TYPE_PARTICIPANT) {
+        fail("participant", `must have @type ${TYPE_PARTICIPANT}`);
+    }
+    const participant: Participant = { ...input, "@type": TYPE_PARTICIPANT };
+    validateParticipant(participant, "participant");
+    return participant;
 }
 
 /**
@@ -75,12 +112,12 @@ export function buildParticipant(input: ParticipantInput): Participant {
  * @return Validated Location object.
  */
 export function buildLocation(input: LocationInput): Location {
-  if (input["@type"] && input["@type"] !== TYPE_LOCATION) {
-    fail("location", `must have @type ${TYPE_LOCATION}`);
-  }
-  const location: Location = { ...input, "@type": TYPE_LOCATION };
-  validateLocation(location, "location");
-  return location;
+    if (input["@type"] && input["@type"] !== TYPE_LOCATION) {
+        fail("location", `must have @type ${TYPE_LOCATION}`);
+    }
+    const location: Location = { ...input, "@type": TYPE_LOCATION };
+    validateLocation(location, "location");
+    return location;
 }
 
 /**
@@ -88,13 +125,18 @@ export function buildLocation(input: LocationInput): Location {
  * @param input VirtualLocation fields without @type.
  * @return Validated VirtualLocation object.
  */
-export function buildVirtualLocation(input: VirtualLocationInput): VirtualLocation {
-  if (input["@type"] && input["@type"] !== TYPE_VIRTUAL_LOCATION) {
-    fail("virtualLocation", `must have @type ${TYPE_VIRTUAL_LOCATION}`);
-  }
-  const virtualLocation: VirtualLocation = { ...input, "@type": TYPE_VIRTUAL_LOCATION };
-  validateVirtualLocation(virtualLocation, "virtualLocation");
-  return virtualLocation;
+export function buildVirtualLocation(
+    input: VirtualLocationInput,
+): VirtualLocation {
+    if (input["@type"] && input["@type"] !== TYPE_VIRTUAL_LOCATION) {
+        fail("virtualLocation", `must have @type ${TYPE_VIRTUAL_LOCATION}`);
+    }
+    const virtualLocation: VirtualLocation = {
+        ...input,
+        "@type": TYPE_VIRTUAL_LOCATION,
+    };
+    validateVirtualLocation(virtualLocation, "virtualLocation");
+    return virtualLocation;
 }
 
 /**
@@ -103,12 +145,12 @@ export function buildVirtualLocation(input: VirtualLocationInput): VirtualLocati
  * @return Validated Alert object.
  */
 export function buildAlert(input: AlertInput): Alert {
-  if (input["@type"] && input["@type"] !== TYPE_ALERT) {
-    fail("alert", `must have @type ${TYPE_ALERT}`);
-  }
-  const alert: Alert = { ...input, "@type": TYPE_ALERT };
-  validateAlert(alert, "alert");
-  return alert;
+    if (input["@type"] && input["@type"] !== TYPE_ALERT) {
+        fail("alert", `must have @type ${TYPE_ALERT}`);
+    }
+    const alert: Alert = { ...input, "@type": TYPE_ALERT };
+    validateAlert(alert, "alert");
+    return alert;
 }
 
 /**
@@ -117,13 +159,13 @@ export function buildAlert(input: AlertInput): Alert {
  * @return Validated OffsetTrigger object.
  */
 export function buildOffsetTrigger(input: OffsetTriggerInput): OffsetTrigger {
-  if (input["@type"] && input["@type"] !== TYPE_OFFSET_TRIGGER) {
-    fail("offsetTrigger", `must have @type ${TYPE_OFFSET_TRIGGER}`);
-  }
-  const trigger: OffsetTrigger = { ...input, "@type": TYPE_OFFSET_TRIGGER };
-  assertSignedDuration(trigger.offset, "offsetTrigger.offset");
-  assertString(trigger.relativeTo, "offsetTrigger.relativeTo");
-  return trigger;
+    if (input["@type"] && input["@type"] !== TYPE_OFFSET_TRIGGER) {
+        fail("offsetTrigger", `must have @type ${TYPE_OFFSET_TRIGGER}`);
+    }
+    const trigger: OffsetTrigger = { ...input, "@type": TYPE_OFFSET_TRIGGER };
+    assertSignedDuration(trigger.offset, "offsetTrigger.offset");
+    assertString(trigger.relativeTo, "offsetTrigger.relativeTo");
+    return trigger;
 }
 
 /**
@@ -131,13 +173,18 @@ export function buildOffsetTrigger(input: OffsetTriggerInput): OffsetTrigger {
  * @param input AbsoluteTrigger fields without @type.
  * @return Validated AbsoluteTrigger object.
  */
-export function buildAbsoluteTrigger(input: AbsoluteTriggerInput): AbsoluteTrigger {
-  if (input["@type"] && input["@type"] !== TYPE_ABSOLUTE_TRIGGER) {
-    fail("absoluteTrigger", `must have @type ${TYPE_ABSOLUTE_TRIGGER}`);
-  }
-  const trigger: AbsoluteTrigger = { ...input, "@type": TYPE_ABSOLUTE_TRIGGER };
-  assertUtcDateTime(trigger.when, "absoluteTrigger.when");
-  return trigger;
+export function buildAbsoluteTrigger(
+    input: AbsoluteTriggerInput,
+): AbsoluteTrigger {
+    if (input["@type"] && input["@type"] !== TYPE_ABSOLUTE_TRIGGER) {
+        fail("absoluteTrigger", `must have @type ${TYPE_ABSOLUTE_TRIGGER}`);
+    }
+    const trigger: AbsoluteTrigger = {
+        ...input,
+        "@type": TYPE_ABSOLUTE_TRIGGER,
+    };
+    assertUtcDateTime(trigger.when, "absoluteTrigger.when");
+    return trigger;
 }
 
 /**
@@ -146,12 +193,12 @@ export function buildAbsoluteTrigger(input: AbsoluteTriggerInput): AbsoluteTrigg
  * @return Validated Relation object.
  */
 export function buildRelation(input: RelationInput): Relation {
-  if (input["@type"] && input["@type"] !== TYPE_RELATION) {
-    fail("relation", `must have @type ${TYPE_RELATION}`);
-  }
-  const relation: Relation = { ...input, "@type": TYPE_RELATION };
-  validateRelation(relation, "relation");
-  return relation;
+    if (input["@type"] && input["@type"] !== TYPE_RELATION) {
+        fail("relation", `must have @type ${TYPE_RELATION}`);
+    }
+    const relation: Relation = { ...input, "@type": TYPE_RELATION };
+    validateRelation(relation, "relation");
+    return relation;
 }
 
 /**
@@ -160,12 +207,12 @@ export function buildRelation(input: RelationInput): Relation {
  * @return Validated Link object.
  */
 export function buildLink(input: LinkInput): Link {
-  if (input["@type"] && input["@type"] !== TYPE_LINK) {
-    fail("link", `must have @type ${TYPE_LINK}`);
-  }
-  const link: Link = { ...input, "@type": TYPE_LINK };
-  validateLink(link, "link");
-  return link;
+    if (input["@type"] && input["@type"] !== TYPE_LINK) {
+        fail("link", `must have @type ${TYPE_LINK}`);
+    }
+    const link: Link = { ...input, "@type": TYPE_LINK };
+    validateLink(link, "link");
+    return link;
 }
 
 /**
@@ -174,12 +221,12 @@ export function buildLink(input: LinkInput): Link {
  * @return Validated TimeZone object.
  */
 export function buildTimeZone(input: TimeZoneInput): TimeZone {
-  if (input["@type"] && input["@type"] !== TYPE_TIME_ZONE) {
-    fail("timeZone", `must have @type ${TYPE_TIME_ZONE}`);
-  }
-  const timeZone: TimeZone = { ...input, "@type": TYPE_TIME_ZONE };
-  validateTimeZoneObject(timeZone, "timeZone");
-  return timeZone;
+    if (input["@type"] && input["@type"] !== TYPE_TIME_ZONE) {
+        fail("timeZone", `must have @type ${TYPE_TIME_ZONE}`);
+    }
+    const timeZone: TimeZone = { ...input, "@type": TYPE_TIME_ZONE };
+    validateTimeZoneObject(timeZone, "timeZone");
+    return timeZone;
 }
 
 /**
@@ -188,12 +235,12 @@ export function buildTimeZone(input: TimeZoneInput): TimeZone {
  * @return Validated TimeZoneRule object.
  */
 export function buildTimeZoneRule(input: TimeZoneRuleInput): TimeZoneRule {
-  if (input["@type"] && input["@type"] !== TYPE_TIME_ZONE_RULE) {
-    fail("timeZoneRule", `must have @type ${TYPE_TIME_ZONE_RULE}`);
-  }
-  const rule: TimeZoneRule = { ...input, "@type": TYPE_TIME_ZONE_RULE };
-  validateTimeZoneRule(rule, "timeZoneRule");
-  return rule;
+    if (input["@type"] && input["@type"] !== TYPE_TIME_ZONE_RULE) {
+        fail("timeZoneRule", `must have @type ${TYPE_TIME_ZONE_RULE}`);
+    }
+    const rule: TimeZoneRule = { ...input, "@type": TYPE_TIME_ZONE_RULE };
+    validateTimeZoneRule(rule, "timeZoneRule");
+    return rule;
 }
 
 /**
@@ -201,13 +248,15 @@ export function buildTimeZoneRule(input: TimeZoneRuleInput): TimeZoneRule {
  * @param input RecurrenceRule fields without @type.
  * @return Validated RecurrenceRule object.
  */
-export function buildRecurrenceRule(input: RecurrenceRuleInput): RecurrenceRule {
-  if (input["@type"] && input["@type"] !== TYPE_RECURRENCE_RULE) {
-    fail("recurrenceRule", `must have @type ${TYPE_RECURRENCE_RULE}`);
-  }
-  const rule: RecurrenceRule = { ...input, "@type": TYPE_RECURRENCE_RULE };
-  validateRecurrenceRule(rule, "recurrenceRule");
-  return rule;
+export function buildRecurrenceRule(
+    input: RecurrenceRuleInput,
+): RecurrenceRule {
+    if (input["@type"] && input["@type"] !== TYPE_RECURRENCE_RULE) {
+        fail("recurrenceRule", `must have @type ${TYPE_RECURRENCE_RULE}`);
+    }
+    const rule: RecurrenceRule = { ...input, "@type": TYPE_RECURRENCE_RULE };
+    validateRecurrenceRule(rule, "recurrenceRule");
+    return rule;
 }
 
 /**
@@ -216,12 +265,12 @@ export function buildRecurrenceRule(input: RecurrenceRuleInput): RecurrenceRule 
  * @return Validated NDay object.
  */
 export function buildNDay(input: NDayInput): NDay {
-  if (input["@type"] && input["@type"] !== TYPE_NDAY) {
-    fail("nday", `must have @type ${TYPE_NDAY}`);
-  }
-  const nday: NDay = { ...input, "@type": TYPE_NDAY };
-  validateNDay(nday, "nday");
-  return nday;
+    if (input["@type"] && input["@type"] !== TYPE_NDAY) {
+        fail("nday", `must have @type ${TYPE_NDAY}`);
+    }
+    const nday: NDay = { ...input, "@type": TYPE_NDAY };
+    validateNDay(nday, "nday");
+    return nday;
 }
 
 /**
@@ -230,9 +279,9 @@ export function buildNDay(input: NDayInput): NDay {
  * @return Validated PatchObject.
  */
 export function buildEventPatch(input: EventPatchInput): EventPatch {
-  const patch: EventPatch = { ...input };
-  assertPatchObject(patch, "eventPatch");
-  return patch;
+    const patch: EventPatch = { ...input };
+    assertPatchObject(patch, "eventPatch");
+    return patch;
 }
 
 /**
@@ -241,9 +290,9 @@ export function buildEventPatch(input: EventPatchInput): EventPatch {
  * @return Validated PatchObject.
  */
 export function buildTaskPatch(input: TaskPatchInput): TaskPatch {
-  const patch: TaskPatch = { ...input };
-  assertPatchObject(patch, "taskPatch");
-  return patch;
+    const patch: TaskPatch = { ...input };
+    assertPatchObject(patch, "taskPatch");
+    return patch;
 }
 
 /**
@@ -252,9 +301,9 @@ export function buildTaskPatch(input: TaskPatchInput): TaskPatch {
  * @return Validated PatchObject.
  */
 export function buildGroupPatch(input: GroupPatchInput): GroupPatch {
-  const patch: GroupPatch = { ...input };
-  assertPatchObject(patch, "groupPatch");
-  return patch;
+    const patch: GroupPatch = { ...input };
+    assertPatchObject(patch, "groupPatch");
+    return patch;
 }
 
 /**
@@ -266,17 +315,17 @@ export function buildGroupPatch(input: GroupPatchInput): GroupPatch {
  * @return Record keyed by ids with merged values.
  */
 export function buildIdMap<TInput, TOutput>(
-  items: Array<IdValueInput<TInput>>,
-  builder: (input: TInput) => TOutput,
-  idFn: (input: TInput, index: number) => Id = () => createId(),
-  existing?: Record<Id, TOutput>,
+    items: Array<IdValueInput<TInput>>,
+    builder: (input: TInput) => TOutput,
+    idFn: (input: TInput, index: number) => Id = () => createId(),
+    existing?: Record<Id, TOutput>,
 ): Record<Id, TOutput> {
-  const result: Record<Id, TOutput> = existing ? { ...existing } : {};
-  items.forEach((item, index) => {
-    const id = item.id ?? idFn(item.value, index);
-    result[id] = builder(item.value);
-  });
-  return result;
+    const result: Record<Id, TOutput> = existing ? { ...existing } : {};
+    items.forEach((item, index) => {
+        const id = item.id ?? idFn(item.value, index);
+        result[id] = builder(item.value);
+    });
+    return result;
 }
 
 /**
@@ -286,10 +335,10 @@ export function buildIdMap<TInput, TOutput>(
  * @return Participant record keyed by Id.
  */
 export function buildParticipants(
-  items: Array<IdValueInput<ParticipantInput>>,
-  existing?: Record<Id, Participant>,
+    items: Array<IdValueInput<ParticipantInput>>,
+    existing?: Record<Id, Participant>,
 ): Record<Id, Participant> {
-  return buildIdMap(items, buildParticipant, () => createId(), existing);
+    return buildIdMap(items, buildParticipant, () => createId(), existing);
 }
 
 /**
@@ -299,10 +348,10 @@ export function buildParticipants(
  * @return Location record keyed by Id.
  */
 export function buildLocations(
-  items: Array<IdValueInput<LocationInput>>,
-  existing?: Record<Id, Location>,
+    items: Array<IdValueInput<LocationInput>>,
+    existing?: Record<Id, Location>,
 ): Record<Id, Location> {
-  return buildIdMap(items, buildLocation, () => createId(), existing);
+    return buildIdMap(items, buildLocation, () => createId(), existing);
 }
 
 /**
@@ -312,10 +361,10 @@ export function buildLocations(
  * @return VirtualLocation record keyed by Id.
  */
 export function buildVirtualLocations(
-  items: Array<IdValueInput<VirtualLocationInput>>,
-  existing?: Record<Id, VirtualLocation>,
+    items: Array<IdValueInput<VirtualLocationInput>>,
+    existing?: Record<Id, VirtualLocation>,
 ): Record<Id, VirtualLocation> {
-  return buildIdMap(items, buildVirtualLocation, () => createId(), existing);
+    return buildIdMap(items, buildVirtualLocation, () => createId(), existing);
 }
 
 /**
@@ -325,10 +374,10 @@ export function buildVirtualLocations(
  * @return Alert record keyed by Id.
  */
 export function buildAlerts(
-  items: Array<IdValueInput<AlertInput>>,
-  existing?: Record<Id, Alert>,
+    items: Array<IdValueInput<AlertInput>>,
+    existing?: Record<Id, Alert>,
 ): Record<Id, Alert> {
-  return buildIdMap(items, buildAlert, () => createId(), existing);
+    return buildIdMap(items, buildAlert, () => createId(), existing);
 }
 
 /**
@@ -338,10 +387,10 @@ export function buildAlerts(
  * @return Link record keyed by Id.
  */
 export function buildLinks(
-  items: Array<IdValueInput<LinkInput>>,
-  existing?: Record<Id, Link>,
+    items: Array<IdValueInput<LinkInput>>,
+    existing?: Record<Id, Link>,
 ): Record<Id, Link> {
-  return buildIdMap(items, buildLink, () => createId(), existing);
+    return buildIdMap(items, buildLink, () => createId(), existing);
 }
 
 /**
@@ -351,10 +400,10 @@ export function buildLinks(
  * @return Relation record keyed by Id.
  */
 export function buildRelatedTo(
-  items: Array<IdValueInput<RelationInput>>,
-  existing?: Record<Id, Relation>,
+    items: Array<IdValueInput<RelationInput>>,
+    existing?: Record<Id, Relation>,
 ): Record<Id, Relation> {
-  return buildIdMap(items, buildRelation, () => createId(), existing);
+    return buildIdMap(items, buildRelation, () => createId(), existing);
 }
 
 /**
@@ -362,11 +411,13 @@ export function buildRelatedTo(
  * @param items TimeZone inputs.
  * @return TimeZone record keyed by tzId.
  */
-export function buildTimeZoneMap(items: TimeZoneInput[]): Record<string, TimeZone> {
-  const result: Record<string, TimeZone> = {};
-  items.forEach((item) => {
-    const timeZone = buildTimeZone(item);
-    result[timeZone.tzId] = timeZone;
-  });
-  return result;
+export function buildTimeZoneMap(
+    items: TimeZoneInput[],
+): Record<string, TimeZone> {
+    const result: Record<string, TimeZone> = {};
+    items.forEach((item) => {
+        const timeZone = buildTimeZone(item);
+        result[timeZone.tzId] = timeZone;
+    });
+    return result;
 }

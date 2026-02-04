@@ -34,19 +34,19 @@ import { JsCal } from "@craftguild/jscalendar";
 
 // Create a recurring event and a simple task, then expand occurrences.
 const event = new JsCal.Event({
-  title: "Weekly Sync",
-  start: new Date(2026, 0, 1, 0, 0, 0, 0),
-  recurrenceRules: [
-    JsCal.RecurrenceRule({
-      frequency: "weekly",
-      byDay: [JsCal.ByDay({ day: "th" })],
-    }),
-  ],
+    title: "Weekly Sync",
+    start: new Date(2026, 0, 1, 0, 0, 0, 0),
+    recurrenceRules: [
+        JsCal.RecurrenceRule({
+            frequency: "weekly",
+            byDay: [JsCal.ByDay({ day: "th" })],
+        }),
+    ],
 });
 
 const task = new JsCal.Task({
-  title: "Prepare Notes",
-  start: new Date(2026, 0, 1, 0, 0, 0, 0),
+    title: "Prepare Notes",
+    start: new Date(2026, 0, 1, 0, 0, 0, 0),
 });
 
 const from = new Date(2026, 0, 1, 0, 0, 0, 0);
@@ -54,12 +54,13 @@ const to = new Date(2026, 0, 31, 0, 0, 0, 0);
 const generator = JsCal.expandRecurrence([event, task], { from, to });
 
 for (const item of generator) {
-  // Expanded JSCalendar objects for events and tasks in the range.
-  console.log(JSON.stringify(item));
+    // Expanded JSCalendar objects for events and tasks in the range.
+    console.log(JSON.stringify(item));
 }
 ```
 
 Sample output (truncated):
+
 ```txt
 {"title":"Weekly Sync","@type":"Event","start":"2026-01-01T00:00:00",...}
 {"title":"Prepare Notes","@type":"Task","start":"2026-01-01T00:00:00",...}
@@ -76,10 +77,10 @@ object and normalizes required fields (e.g., `uid`, `updated`).
 
 ```ts
 const event = new JsCal.Event({
-  title: "Team Sync",
-  start: "2026-02-10T10:00:00",
-  timeZone: "America/New_York",
-  duration: "PT30M",
+    title: "Team Sync",
+    start: "2026-02-10T10:00:00",
+    timeZone: "America/New_York",
+    duration: "PT30M",
 });
 ```
 
@@ -87,10 +88,10 @@ const event = new JsCal.Event({
 
 ```ts
 const task = new JsCal.Task({
-  title: "Write report",
-  start: "2026-02-11T09:00:00",
-  due: "2026-02-11T17:00:00",
-  percentComplete: 10,
+    title: "Write report",
+    start: "2026-02-11T09:00:00",
+    due: "2026-02-11T17:00:00",
+    percentComplete: 10,
 });
 ```
 
@@ -101,8 +102,8 @@ or `JsCal.Event`/`JsCal.Task` instances.
 
 ```ts
 const group = new JsCal.Group({
-  title: "Project A",
-  entries: [event, task.eject()],
+    title: "Project A",
+    entries: [event, task.eject()],
 });
 ```
 
@@ -124,18 +125,33 @@ your database), but builders offer a safer, clearer option for app code.
 
 ```ts
 const task = new JsCal.Task({
-  title: "Write report",
-  start: "2026-02-11T09:00:00",
-  participants: JsCal.participants([
-    { value: JsCal.Participant({ name: "Alice", email: "a@example.com", roles: { attendee: true } }) },
-    { value: JsCal.Participant({ name: "Bob", roles: { attendee: true } }) },
-  ]),
-  locations: JsCal.locations([
-    { value: JsCal.Location({ name: "Room A" }) },
-  ]),
-  alerts: JsCal.alerts([
-    { value: JsCal.Alert({ trigger: JsCal.OffsetTrigger({ offset: JsCal.duration.minutes(-15) }) }) },
-  ]),
+    title: "Write report",
+    start: "2026-02-11T09:00:00",
+    participants: JsCal.participants([
+        {
+            value: JsCal.Participant({
+                name: "Alice",
+                email: "a@example.com",
+                roles: { attendee: true },
+            }),
+        },
+        {
+            value: JsCal.Participant({
+                name: "Bob",
+                roles: { attendee: true },
+            }),
+        },
+    ]),
+    locations: JsCal.locations([{ value: JsCal.Location({ name: "Room A" }) }]),
+    alerts: JsCal.alerts([
+        {
+            value: JsCal.Alert({
+                trigger: JsCal.OffsetTrigger({
+                    offset: JsCal.duration.minutes(-15),
+                }),
+            }),
+        },
+    ]),
 });
 ```
 
@@ -143,17 +159,25 @@ const task = new JsCal.Task({
 
 ```ts
 const task = new JsCal.Task({
-  title: "Imported task",
-  start: "2026-02-11T09:00:00",
-  participants: {
-    p1: { "@type": "Participant", name: "Alice", email: "a@example.com", roles: { attendee: true } },
-  },
-  locations: {
-    l1: { "@type": "Location", name: "Room A" },
-  },
-  alerts: {
-    a1: { "@type": "Alert", trigger: { "@type": "OffsetTrigger", offset: "-PT15M" } },
-  },
+    title: "Imported task",
+    start: "2026-02-11T09:00:00",
+    participants: {
+        p1: {
+            "@type": "Participant",
+            name: "Alice",
+            email: "a@example.com",
+            roles: { attendee: true },
+        },
+    },
+    locations: {
+        l1: { "@type": "Location", name: "Room A" },
+    },
+    alerts: {
+        a1: {
+            "@type": "Alert",
+            trigger: { "@type": "OffsetTrigger", offset: "-PT15M" },
+        },
+    },
 });
 ```
 
@@ -177,6 +201,7 @@ clone of that underlying JSCalendar object for serialization, storage,
 or passing across app boundaries.
 
 Why `eject()` exists:
+
 - Class instances are convenient for building and updating objects with
   helpers like `patch`.
 - External APIs, storage layers, and JSON stringify expect plain objects.
@@ -184,12 +209,16 @@ Why `eject()` exists:
   from the original instance (and vice versa).
 
 What changes after `eject()`:
+
 - You lose helper methods; the result is just a plain JSCalendar object.
 - Mutating the plain object does not affect the original instance.
 - The instance can still be used and updated independently.
 
 ```ts
-const event = new JsCal.Event({ title: "Kickoff", start: "2026-02-02T10:00:00" });
+const event = new JsCal.Event({
+    title: "Kickoff",
+    start: "2026-02-02T10:00:00",
+});
 const plain = event.eject();
 
 // Plain object is ready for JSON / storage / network.
@@ -216,40 +245,47 @@ You can also patch nested maps by replacing the full map in one call:
 
 ```ts
 const withParticipants = event.patch({
-  participants: {
-    p1: { "@type": "Participant", roles: { attendee: true }, email: "a@example.com" },
-  },
+    participants: {
+        p1: {
+            "@type": "Participant",
+            roles: { attendee: true },
+            email: "a@example.com",
+        },
+    },
 });
 ```
 
 Two common patterns for nested patches:
 
-1) Set raw values directly
+1. Set raw values directly
+
 ```ts
 const withLocations = event.patch({
-  locations: {
-    l1: { "@type": "Location", name: "Room A" },
-  },
+    locations: {
+        l1: { "@type": "Location", name: "Room A" },
+    },
 });
 ```
 
-2) Use helpers to build or merge map values
+2. Use helpers to build or merge map values
+
 ```ts
 const withLocations = event.patch({
-  locations: JsCal.locations([
-    { id: "l1", value: JsCal.Location({ name: "Room A" }) },
-    { value: JsCal.Location({ name: "Room B" }) },
-  ]),
+    locations: JsCal.locations([
+        { id: "l1", value: JsCal.Location({ name: "Room A" }) },
+        { value: JsCal.Location({ name: "Room B" }) },
+    ]),
 });
 ```
 
 To merge into an existing map, pass the current map as the second argument:
+
 ```ts
 const withLocations = event.patch({
-  locations: JsCal.locations(
-    [{ value: JsCal.Location({ name: "Room C" }) }],
-    event.data.locations,
-  ),
+    locations: JsCal.locations(
+        [{ value: JsCal.Location({ name: "Room C" }) }],
+        event.data.locations,
+    ),
 });
 ```
 
@@ -264,20 +300,20 @@ Date fields accept either RFC 8984 strings or JavaScript `Date`. When a
 
 ```ts
 const eventFromDate = new JsCal.Event({
-  title: "Kickoff",
-  start: new Date(),
+    title: "Kickoff",
+    start: new Date(),
 });
 
 const eventWithSeconds = new JsCal.Event({
-  title: "Kickoff",
-  start: new Date(),
-  duration: 90 * 60, // seconds
+    title: "Kickoff",
+    start: new Date(),
+    duration: 90 * 60, // seconds
 });
 
 const eventWithZone = new JsCal.Event({
-  title: "Kickoff",
-  start: new Date(),
-  timeZone: JsCal.timeZone("asia/tokyo"), // => Asia/Tokyo
+    title: "Kickoff",
+    start: new Date(),
+    timeZone: JsCal.timeZone("asia/tokyo"), // => Asia/Tokyo
 });
 ```
 
@@ -292,8 +328,8 @@ query engine or build a custom index.
 
 ```ts
 const results = JsCal.filterByDateRange(items, {
-  start: "2026-02-01T00:00:00Z",
-  end: "2026-02-28T23:59:59Z",
+    start: "2026-02-01T00:00:00Z",
+    end: "2026-02-28T23:59:59Z",
 });
 
 const found = JsCal.findByUid(items, "uid-123");
@@ -320,11 +356,11 @@ overrides and exclusions. The output instances contain `recurrenceId`
 and preserve the base object’s data unless a patch modifies fields.
 
 ```ts
-for (const occ of JsCal.expandRecurrence(
-  [event],
-  { from: new Date("2026-02-01"), to: new Date("2026-03-01") }
-)) {
-  console.log(occ);
+for (const occ of JsCal.expandRecurrence([event], {
+    from: new Date("2026-02-01"),
+    to: new Date("2026-03-01"),
+})) {
+    console.log(occ);
 }
 ```
 
@@ -336,15 +372,15 @@ scrolling or an infinite feed.
 
 ```ts
 const page1 = JsCal.expandRecurrencePaged(
-  [event],
-  { from: new Date("2026-02-01"), to: new Date("2026-03-01") },
-  { limit: 50 }
+    [event],
+    { from: new Date("2026-02-01"), to: new Date("2026-03-01") },
+    { limit: 50 },
 );
 
 const page2 = JsCal.expandRecurrencePaged(
-  [event],
-  { from: new Date("2026-02-01"), to: new Date("2026-03-01") },
-  { limit: 50, cursor: page1.nextCursor }
+    [event],
+    { from: new Date("2026-02-01"), to: new Date("2026-03-01") },
+    { limit: 50, cursor: page1.nextCursor },
 );
 ```
 
@@ -360,15 +396,15 @@ compared as simple strings.
 
 ```ts
 const event = new JsCal.Event({
-  start: "2026-02-01T10:00:00",
-  timeZone: "Asia/Tokyo",
+    start: "2026-02-01T10:00:00",
+    timeZone: "Asia/Tokyo",
 });
 
 // 2026-02-01T01:00:00Z is 10:00 in Asia/Tokyo
-const results = JsCal.filterByDateRange(
-  [event],
-  { start: new Date("2026-02-01T01:00:00Z"), end: new Date("2026-02-01T01:00:00Z") }
-);
+const results = JsCal.filterByDateRange([event], {
+    start: new Date("2026-02-01T01:00:00Z"),
+    end: new Date("2026-02-01T01:00:00Z"),
+});
 console.log(results.length); // 1
 ```
 
@@ -413,9 +449,9 @@ and this library’s behavior.
 - **Validation**: strict type/format validation is enforced by default (RFC-style date/time and duration rules),
   but can be disabled with `{ validate: false }` in create/update/patch.
 - **Time zone and DST**:
-  - Range filtering and recurrence comparisons use `date-fns-tz`.
-  - Recurrence generation still operates on LocalDateTime arithmetic and does not fully normalize
-    DST gaps/overlaps into canonical UTC instants for all cases.
+    - Range filtering and recurrence comparisons use `date-fns-tz`.
+    - Recurrence generation still operates on LocalDateTime arithmetic and does not fully normalize
+      DST gaps/overlaps into canonical UTC instants for all cases.
 - **iCalendar export**: minimal mapping + `X-JSCALENDAR`; no VTIMEZONE generation.
 
 If you require strict, formal compliance, please treat this as a foundation

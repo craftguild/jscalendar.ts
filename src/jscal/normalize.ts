@@ -7,8 +7,10 @@ import { isObjectValue } from "../utils.js";
  * @param value Value to check.
  * @return True when value looks like a JsCal instance.
  */
-export function isJsCalInstance(value: object): value is { data: JSCalendarObject } {
-  return "data" in value;
+export function isJsCalInstance(
+    value: object,
+): value is { data: JSCalendarObject } {
+    return "data" in value;
 }
 
 /**
@@ -16,16 +18,18 @@ export function isJsCalInstance(value: object): value is { data: JSCalendarObjec
  * @param items Items to normalize.
  * @return Plain JSCalendar objects.
  */
-export function normalizeItems(items: Array<JSCalendarObject | { data: JSCalendarObject }>): JSCalendarObject[] {
-  const mapped: JSCalendarObject[] = [];
-  for (const entry of items) {
-    if (isObjectValue(entry) && isJsCalInstance(entry)) {
-      mapped.push(entry.data);
-    } else {
-      mapped.push(entry);
+export function normalizeItems(
+    items: Array<JSCalendarObject | { data: JSCalendarObject }>,
+): JSCalendarObject[] {
+    const mapped: JSCalendarObject[] = [];
+    for (const entry of items) {
+        if (isObjectValue(entry) && isJsCalInstance(entry)) {
+            mapped.push(entry.data);
+        } else {
+            mapped.push(entry);
+        }
     }
-  }
-  return mapped;
+    return mapped;
 }
 
 /**
@@ -34,10 +38,10 @@ export function normalizeItems(items: Array<JSCalendarObject | { data: JSCalenda
  * @return Plain Event or Task object.
  */
 export function normalizeEntry(entry: EntryInput): Event | Task {
-  if (isObjectValue(entry) && isJsCalInstance(entry)) {
-    return entry.data;
-  }
-  return entry;
+    if (isObjectValue(entry) && isJsCalInstance(entry)) {
+        return entry.data;
+    }
+    return entry;
 }
 
 /**
@@ -46,7 +50,7 @@ export function normalizeEntry(entry: EntryInput): Event | Task {
  * @return Plain JSCalendar objects.
  */
 export function normalizeToObjects(
-  value: Array<JSCalendarObject | { data: JSCalendarObject }>,
+    value: Array<JSCalendarObject | { data: JSCalendarObject }>,
 ): JSCalendarObject[] {
-  return normalizeItems(value);
+    return normalizeItems(value);
 }

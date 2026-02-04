@@ -18,18 +18,20 @@ export const TYPE_EVENT = "Event";
 export const TYPE_TASK = "Task";
 export const TYPE_GROUP = "Group";
 
-export const DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z)?$/;
-export const DURATION = /^-?P(?:(\d+)W(?:(\d+)D)?|(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)(?:\.(\d+))?S)?)?$/;
+export const DATE_TIME =
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z)?$/;
+export const DURATION =
+    /^-?P(?:(\d+)W(?:(\d+)D)?|(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)(?:\.(\d+))?S)?)?$/;
 
 export const DAY_OF_WEEK = new Set(["mo", "tu", "we", "th", "fr", "sa", "su"]);
 export const RECURRENCE_FREQUENCY = new Set([
-  "yearly",
-  "monthly",
-  "weekly",
-  "daily",
-  "hourly",
-  "minutely",
-  "secondly",
+    "yearly",
+    "monthly",
+    "weekly",
+    "daily",
+    "hourly",
+    "minutely",
+    "secondly",
 ]);
 export const SKIP = new Set(["omit", "backward", "forward"]);
 export const ID_PATTERN = /^[A-Za-z0-9_-]+$/;

@@ -7,7 +7,7 @@ import { TYPE_EVENT, TYPE_GROUP, TYPE_TASK } from "./constants.js";
  * @return True when the object is an Event.
  */
 export function isEvent(obj: JSCalendarObject): obj is Event {
-  return obj["@type"] === TYPE_EVENT;
+    return obj["@type"] === TYPE_EVENT;
 }
 
 /**
@@ -16,7 +16,7 @@ export function isEvent(obj: JSCalendarObject): obj is Event {
  * @return True when the object is a Task.
  */
 export function isTask(obj: JSCalendarObject): obj is Task {
-  return obj["@type"] === TYPE_TASK;
+    return obj["@type"] === TYPE_TASK;
 }
 
 /**
@@ -25,5 +25,5 @@ export function isTask(obj: JSCalendarObject): obj is Task {
  * @return True when the object is a Group.
  */
 export function isGroup(obj: JSCalendarObject): obj is Group {
-  return obj["@type"] === TYPE_GROUP;
+    return obj["@type"] === TYPE_GROUP;
 }

@@ -9,14 +9,14 @@ const PATCH_ERROR_NAME = "PatchError";
  * Error thrown when a patch operation is invalid.
  */
 export class PatchError extends Error {
-  /**
-   * Create a new PatchError.
-   * @param message Error message.
-   */
-  constructor(message: string) {
-    super(message);
-    this.name = PATCH_ERROR_NAME;
-  }
+    /**
+     * Create a new PatchError.
+     * @param message Error message.
+     */
+    constructor(message: string) {
+        super(message);
+        this.name = PATCH_ERROR_NAME;
+    }
 }
 
 /**
@@ -25,7 +25,7 @@ export class PatchError extends Error {
  * @return Unescaped pointer segment.
  */
 function unescapePointer(segment: string): string {
-  return segment.replace(/~1/g, "/").replace(/~0/g, "~");
+    return segment.replace(/~1/g, "/").replace(/~0/g, "~");
 }
 
 /**
@@ -34,9 +34,9 @@ function unescapePointer(segment: string): string {
  * @return Normalized pointer.
  */
 function normalizePointer(pointer: string): string {
-  return pointer.startsWith(POINTER_SEPARATOR)
-    ? pointer
-    : `${POINTER_SEPARATOR}${pointer}`;
+    return pointer.startsWith(POINTER_SEPARATOR)
+        ? pointer
+        : `${POINTER_SEPARATOR}${pointer}`;
 }
 
 /**
@@ -45,12 +45,9 @@ function normalizePointer(pointer: string): string {
  * @return Unescaped pointer segments.
  */
 function splitPointer(pointer: string): string[] {
-  const normalized = normalizePointer(pointer);
-  if (normalized === POINTER_SEPARATOR) return [];
-  return normalized
-    .split(POINTER_SEPARATOR)
-    .slice(1)
-    .map(unescapePointer);
+    const normalized = normalizePointer(pointer);
+    if (normalized === POINTER_SEPARATOR) return [];
+    return normalized.split(POINTER_SEPARATOR).slice(1).map(unescapePointer);
 }
 
 /**
@@ -59,17 +56,19 @@ function splitPointer(pointer: string): string[] {
  * @return Nothing.
  */
 function validatePrefixConflicts(pointers: string[]): void {
-  const normalized = pointers.map(normalizePointer).sort();
-  for (let i = 0; i < normalized.length; i += 1) {
-    const current = normalized[i];
-    for (let j = i + 1; j < normalized.length; j += 1) {
-      const other = normalized[j];
-      const prefix = `${current}${POINTER_SEPARATOR}`;
-      if (other && other.startsWith(prefix)) {
-        throw new PatchError(`Patch pointer conflict: ${current} is prefix of ${other}`);
-      }
+    const normalized = pointers.map(normalizePointer).sort();
+    for (let i = 0; i < normalized.length; i += 1) {
+        const current = normalized[i];
+        for (let j = i + 1; j < normalized.length; j += 1) {
+            const other = normalized[j];
+            const prefix = `${current}${POINTER_SEPARATOR}`;
+            if (other && other.startsWith(prefix)) {
+                throw new PatchError(
+                    `Patch pointer conflict: ${current} is prefix of ${other}`,
+                );
+            }
+        }
     }
-  }
 }
 
 /**
@@ -78,10 +77,13 @@ function validatePrefixConflicts(pointers: string[]): void {
  * @param pointer Pointer for error context.
  * @return Nothing.
  */
-function assertNotArray(value: PatchValue | object | null, pointer: string): void {
-  if (Array.isArray(value)) {
-    throw new PatchError(`Patch pointer references into array: ${pointer}`);
-  }
+function assertNotArray(
+    value: PatchValue | object | null,
+    pointer: string,
+): void {
+    if (Array.isArray(value)) {
+        throw new PatchError(`Patch pointer references into array: ${pointer}`);
+    }
 }
 
 /**
@@ -90,10 +92,19 @@ function assertNotArray(value: PatchValue | object | null, pointer: string): voi
  * @param pointer Pointer for error context.
  * @return Nothing.
  */
-function assertObject(value: PatchValue | object | null, pointer: string): asserts value is Record<string, PatchValue> {
-  if (value === null || typeof value !== TYPE_OBJECT || Array.isArray(value)) {
-    throw new PatchError(`Patch pointer references missing or non-object path: ${pointer}`);
-  }
+function assertObject(
+    value: PatchValue | object | null,
+    pointer: string,
+): asserts value is Record<string, PatchValue> {
+    if (
+        value === null ||
+        typeof value !== TYPE_OBJECT ||
+        Array.isArray(value)
+    ) {
+        throw new PatchError(
+            `Patch pointer references missing or non-object path: ${pointer}`,
+        );
+    }
 }
 
 /**
@@ -102,10 +113,15 @@ function assertObject(value: PatchValue | object | null, pointer: string): asser
  * @param pointer Pointer for error context.
  * @return Nothing.
  */
-function assertRecord(value: object, pointer: string): asserts value is Record<string, PatchValue> {
-  if (value === null || Array.isArray(value)) {
-    throw new PatchError(`Patch pointer references missing or non-object path: ${pointer}`);
-  }
+function assertRecord(
+    value: object,
+    pointer: string,
+): asserts value is Record<string, PatchValue> {
+    if (value === null || Array.isArray(value)) {
+        throw new PatchError(
+            `Patch pointer references missing or non-object path: ${pointer}`,
+        );
+    }
 }
 
 /**
@@ -114,12 +130,15 @@ function assertRecord(value: object, pointer: string): asserts value is Record<s
  * @param patch Patch entries to apply.
  * @return Nothing.
  */
-function applyPatchEntries(target: Record<string, PatchValue>, patch: PatchLike): void {
-  for (const [rawPointer, value] of Object.entries(patch)) {
-    const pointer = normalizePointer(rawPointer);
-    const segments = splitPointer(pointer);
-    applyPointerSegments(target, pointer, segments, value);
-  }
+function applyPatchEntries(
+    target: Record<string, PatchValue>,
+    patch: PatchLike,
+): void {
+    for (const [rawPointer, value] of Object.entries(patch)) {
+        const pointer = normalizePointer(rawPointer);
+        const segments = splitPointer(pointer);
+        applyPointerSegments(target, pointer, segments, value);
+    }
 }
 
 /**
@@ -131,17 +150,17 @@ function applyPatchEntries(target: Record<string, PatchValue>, patch: PatchLike)
  * @return Nothing.
  */
 function applyPointerSegments(
-  target: Record<string, PatchValue>,
-  pointer: string,
-  segments: string[],
-  value: PatchValue,
+    target: Record<string, PatchValue>,
+    pointer: string,
+    segments: string[],
+    value: PatchValue,
 ): void {
-  let current = target;
-  for (let i = 0; i < segments.length; i += 1) {
-    const segment = ensureSegment(segments[i], pointer);
-    const isLast = isLastSegment(i, segments.length);
-    current = applySegment(current, segment, isLast, value, pointer);
-  }
+    let current = target;
+    for (let i = 0; i < segments.length; i += 1) {
+        const segment = ensureSegment(segments[i], pointer);
+        const isLast = isLastSegment(i, segments.length);
+        current = applySegment(current, segment, isLast, value, pointer);
+    }
 }
 
 /**
@@ -151,10 +170,10 @@ function applyPointerSegments(
  * @return Validated segment.
  */
 function ensureSegment(segment: string | undefined, pointer: string): string {
-  if (segment === undefined) {
-    throw new PatchError(`Patch pointer missing segment: ${pointer}`);
-  }
-  return segment;
+    if (segment === undefined) {
+        throw new PatchError(`Patch pointer missing segment: ${pointer}`);
+    }
+    return segment;
 }
 
 /**
@@ -164,7 +183,7 @@ function ensureSegment(segment: string | undefined, pointer: string): string {
  * @return True if this is the last segment.
  */
 function isLastSegment(index: number, length: number): boolean {
-  return index === length - 1;
+    return index === length - 1;
 }
 
 /**
@@ -177,21 +196,21 @@ function isLastSegment(index: number, length: number): boolean {
  * @return Next record to traverse.
  */
 function applySegment(
-  current: Record<string, PatchValue>,
-  segment: string,
-  isLast: boolean,
-  value: PatchValue,
-  pointer: string,
+    current: Record<string, PatchValue>,
+    segment: string,
+    isLast: boolean,
+    value: PatchValue,
+    pointer: string,
 ): Record<string, PatchValue> {
-  assertNotArray(current, pointer);
-  assertRecord(current, pointer);
+    assertNotArray(current, pointer);
+    assertRecord(current, pointer);
 
-  if (isLast) {
-    applyValueAtSegment(current, segment, value);
-    return current;
-  }
+    if (isLast) {
+        applyValueAtSegment(current, segment, value);
+        return current;
+    }
 
-  return getNextRecord(current, segment, pointer);
+    return getNextRecord(current, segment, pointer);
 }
 
 /**
@@ -201,14 +220,18 @@ function applySegment(
  * @param value Patch value.
  * @return Nothing.
  */
-function applyValueAtSegment(current: Record<string, PatchValue>, segment: string, value: PatchValue): void {
-  if (value === null) {
-    if (Object.prototype.hasOwnProperty.call(current, segment)) {
-      delete current[segment];
+function applyValueAtSegment(
+    current: Record<string, PatchValue>,
+    segment: string,
+    value: PatchValue,
+): void {
+    if (value === null) {
+        if (Object.prototype.hasOwnProperty.call(current, segment)) {
+            delete current[segment];
+        }
+        return;
     }
-    return;
-  }
-  current[segment] = value;
+    current[segment] = value;
 }
 
 /**
@@ -219,19 +242,19 @@ function applyValueAtSegment(current: Record<string, PatchValue>, segment: strin
  * @return Next record to traverse.
  */
 function getNextRecord(
-  current: Record<string, PatchValue>,
-  segment: string,
-  pointer: string,
+    current: Record<string, PatchValue>,
+    segment: string,
+    pointer: string,
 ): Record<string, PatchValue> {
-  if (!Object.prototype.hasOwnProperty.call(current, segment)) {
-    throw new PatchError(`Patch pointer missing path: ${pointer}`);
-  }
-  const next = current[segment];
-  if (next === undefined) {
-    throw new PatchError(`Patch pointer missing path: ${pointer}`);
-  }
-  assertObject(next, pointer);
-  return next;
+    if (!Object.prototype.hasOwnProperty.call(current, segment)) {
+        throw new PatchError(`Patch pointer missing path: ${pointer}`);
+    }
+    const next = current[segment];
+    if (next === undefined) {
+        throw new PatchError(`Patch pointer missing path: ${pointer}`);
+    }
+    assertObject(next, pointer);
+    return next;
 }
 
 /**
@@ -241,12 +264,12 @@ function getNextRecord(
  * @return Patched clone of the input object.
  */
 export function applyPatch<T extends object>(input: T, patch: PatchLike): T {
-  const pointers = Object.keys(patch);
-  validatePrefixConflicts(pointers);
+    const pointers = Object.keys(patch);
+    validatePrefixConflicts(pointers);
 
-  const target = deepClone(input);
-  assertRecord(target, POINTER_SEPARATOR);
+    const target = deepClone(input);
+    assertRecord(target, POINTER_SEPARATOR);
 
-  applyPatchEntries(target, patch);
-  return target;
+    applyPatchEntries(target, patch);
+    return target;
 }

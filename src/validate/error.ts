@@ -2,18 +2,18 @@
  * Error thrown when validation fails.
  */
 export class ValidationError extends Error {
-  path: string;
+    path: string;
 
-  /**
-   * Create a new ValidationError.
-   * @param path Validation path.
-   * @param message Error message.
-   */
-  constructor(path: string, message: string) {
-    super(`${path}: ${message}`);
-    this.name = "ValidationError";
-    this.path = path;
-  }
+    /**
+     * Create a new ValidationError.
+     * @param path Validation path.
+     * @param message Error message.
+     */
+    constructor(path: string, message: string) {
+        super(`${path}: ${message}`);
+        this.name = "ValidationError";
+        this.path = path;
+    }
 }
 
 /**
@@ -23,5 +23,5 @@ export class ValidationError extends Error {
  * @return Never returns.
  */
 export function fail(path: string, message: string): never {
-  throw new ValidationError(path, message);
+    throw new ValidationError(path, message);
 }

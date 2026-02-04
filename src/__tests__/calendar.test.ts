@@ -6,161 +6,190 @@ type EventInstance = InstanceType<typeof JsCal.Event>;
 const fixedNow = () => "2026-02-01T00:00:00Z";
 
 function makeEvent(): EventInstance {
-  return new JsCal.Event(
-    {
-      title: "Kickoff",
-      start: "2026-02-02T10:00:00",
-    },
-    { now: fixedNow },
-  );
+    return new JsCal.Event(
+        {
+            title: "Kickoff",
+            start: "2026-02-02T10:00:00",
+        },
+        { now: fixedNow },
+    );
 }
 
 describe("JsCal.Event", () => {
-  it("fills uid and updated", () => {
-    const event = makeEvent();
-    expect(event.data.uid).toBeTruthy();
-    expect(event.data.updated).toBe("2026-02-01T00:00:00Z");
-    expect(event.data["@type"]).toBe("Event");
-    expect(event.data.sequence).toBe(0);
-    expect(event.data.duration).toBe("PT0S");
-    expect(event.data.status).toBe("confirmed");
-    expect(event.data.created).toBe("2026-02-01T00:00:00Z");
-    expect(event.data.descriptionContentType).toBe("text/plain");
-    expect(event.data.showWithoutTime).toBe(false);
-    expect(event.data.freeBusyStatus).toBe("busy");
-    expect(event.data.privacy).toBe("public");
-    expect(event.data.useDefaultAlerts).toBe(false);
-    expect(event.data.excluded).toBe(false);
-    expect(event.data.timeZone).toBeUndefined();
-  });
+    it("fills uid and updated", () => {
+        const event = makeEvent();
+        expect(event.data.uid).toBeTruthy();
+        expect(event.data.updated).toBe("2026-02-01T00:00:00Z");
+        expect(event.data["@type"]).toBe("Event");
+        expect(event.data.sequence).toBe(0);
+        expect(event.data.duration).toBe("PT0S");
+        expect(event.data.status).toBe("confirmed");
+        expect(event.data.created).toBe("2026-02-01T00:00:00Z");
+        expect(event.data.descriptionContentType).toBe("text/plain");
+        expect(event.data.showWithoutTime).toBe(false);
+        expect(event.data.freeBusyStatus).toBe("busy");
+        expect(event.data.privacy).toBe("public");
+        expect(event.data.useDefaultAlerts).toBe(false);
+        expect(event.data.excluded).toBe(false);
+        expect(event.data.timeZone).toBeUndefined();
+    });
 
-  it("throws when required fields are missing", () => {
-    expect(() => {
-      // @ts-expect-error start is required
-      new JsCal.Event({ title: "Missing start" }, { now: fixedNow });
-    }).toThrow(/Event.start/);
-  });
+    it("throws when required fields are missing", () => {
+        expect(() => {
+            // @ts-expect-error start is required
+            new JsCal.Event({ title: "Missing start" }, { now: fixedNow });
+        }).toThrow(/Event.start/);
+    });
 
-  it("accepts explicit @type", () => {
-    const event = new JsCal.Event({ start: "2026-02-02T10:00:00" }, { now: fixedNow });
-    expect(event.data["@type"]).toBe("Event");
-  });
+    it("accepts explicit @type", () => {
+        const event = new JsCal.Event(
+            { start: "2026-02-02T10:00:00" },
+            { now: fixedNow },
+        );
+        expect(event.data["@type"]).toBe("Event");
+    });
 
-  it("accepts Date for start", () => {
-    const event = new JsCal.Event({ start: new Date("2026-02-02T10:00:00") }, { now: fixedNow });
-    expect(event.data.start).toBe("2026-02-02T10:00:00");
-  });
+    it("accepts Date for start", () => {
+        const event = new JsCal.Event(
+            { start: new Date("2026-02-02T10:00:00") },
+            { now: fixedNow },
+        );
+        expect(event.data.start).toBe("2026-02-02T10:00:00");
+    });
 
-  it("does not set timeZone when missing", () => {
-    const event = new JsCal.Event({ start: new Date("2026-02-02T10:00:00") }, { now: fixedNow });
-    expect(event.data.timeZone).toBeUndefined();
-  });
+    it("does not set timeZone when missing", () => {
+        const event = new JsCal.Event(
+            { start: new Date("2026-02-02T10:00:00") },
+            { now: fixedNow },
+        );
+        expect(event.data.timeZone).toBeUndefined();
+    });
 
-  it("accepts duration in seconds", () => {
-    const event = new JsCal.Event(
-      { start: new Date("2026-02-02T10:00:00"), duration: 3600 },
-      { now: fixedNow },
-    );
-    expect(event.data.duration).toBe("PT1H");
-  });
+    it("accepts duration in seconds", () => {
+        const event = new JsCal.Event(
+            { start: new Date("2026-02-02T10:00:00"), duration: 3600 },
+            { now: fixedNow },
+        );
+        expect(event.data.duration).toBe("PT1H");
+    });
 
-  it("handles duration boundaries", () => {
-    const zero = new JsCal.Event(
-      { start: new Date("2026-02-02T10:00:00"), duration: 0 },
-      { now: fixedNow },
-    );
-    expect(zero.data.duration).toBe("PT0S");
+    it("handles duration boundaries", () => {
+        const zero = new JsCal.Event(
+            { start: new Date("2026-02-02T10:00:00"), duration: 0 },
+            { now: fixedNow },
+        );
+        expect(zero.data.duration).toBe("PT0S");
 
-    const seconds = new JsCal.Event(
-      { start: new Date("2026-02-02T10:00:00"), duration: 59 },
-      { now: fixedNow },
-    );
-    expect(seconds.data.duration).toBe("PT59S");
+        const seconds = new JsCal.Event(
+            { start: new Date("2026-02-02T10:00:00"), duration: 59 },
+            { now: fixedNow },
+        );
+        expect(seconds.data.duration).toBe("PT59S");
 
-    const negative = new JsCal.Event(
-      { start: new Date("2026-02-02T10:00:00"), duration: -1 },
-      { now: fixedNow },
-    );
-    expect(negative.data.duration).toBe("PT0S");
-  });
+        const negative = new JsCal.Event(
+            { start: new Date("2026-02-02T10:00:00"), duration: -1 },
+            { now: fixedNow },
+        );
+        expect(negative.data.duration).toBe("PT0S");
+    });
 });
 
 describe("Event.patch", () => {
-  it("increments sequence on non-participant patches", () => {
-    const event = makeEvent();
-    const patched = event.patch({ title: "Updated" }, { now: fixedNow });
-    expect(patched.data.sequence).toBe(1);
-    expect(event.data.sequence).toBe(0);
-  });
+    it("increments sequence on non-participant patches", () => {
+        const event = makeEvent();
+        const patched = event.patch({ title: "Updated" }, { now: fixedNow });
+        expect(patched.data.sequence).toBe(1);
+        expect(event.data.sequence).toBe(0);
+    });
 
-  it("respects touch=false", () => {
-    const event = makeEvent();
-    const before = event.data.updated;
-    const patched = event.patch({ title: "No touch" }, { touch: false, now: () => "2026-02-02T00:00:00Z" });
-    expect(patched.data.updated).toBe(before);
-  });
+    it("respects touch=false", () => {
+        const event = makeEvent();
+        const before = event.data.updated;
+        const patched = event.patch(
+            { title: "No touch" },
+            { touch: false, now: () => "2026-02-02T00:00:00Z" },
+        );
+        expect(patched.data.updated).toBe(before);
+    });
 
-  it("applies patch and updates metadata", () => {
-    const event = makeEvent();
-    const patched = event.patch({ title: "Patched" }, { now: fixedNow });
-    expect(patched.data.title).toBe("Patched");
-    expect(patched.data.updated).toBe("2026-02-01T00:00:00Z");
-    expect(patched.data.sequence).toBe(1);
-  });
+    it("applies patch and updates metadata", () => {
+        const event = makeEvent();
+        const patched = event.patch({ title: "Patched" }, { now: fixedNow });
+        expect(patched.data.title).toBe("Patched");
+        expect(patched.data.updated).toBe("2026-02-01T00:00:00Z");
+        expect(patched.data.sequence).toBe(1);
+    });
 
-  it("allows patch to add nested maps with defaults", () => {
-    const event = makeEvent();
-    const patched = event.patch(
-      {
-        locations: {
-          l1: { "@type": "Location", name: "Room A" },
-        },
-        virtualLocations: {
-          v1: { "@type": "VirtualLocation", uri: "https://example.com" },
-        },
-        participants: {
-          p1: { "@type": "Participant", roles: { attendee: true }, email: "a@example.com" },
-        },
-        alerts: {
-          a1: { "@type": "Alert", trigger: { "@type": "AbsoluteTrigger", when: "2026-02-01T01:00:00Z" } },
-        },
-        links: {
-          link1: { "@type": "Link", href: "https://example.com" },
-        },
-        relatedTo: {
-          r1: { "@type": "Relation", relation: { parent: true } },
-        },
-      },
-      { now: fixedNow },
-    );
-    expect(patched.data.locations?.l1?.name).toBe("Room A");
-    expect(patched.data.virtualLocations?.v1?.uri).toBe("https://example.com");
-    expect(patched.data.participants?.p1?.email).toBe("a@example.com");
-    expect(patched.data.alerts?.a1?.trigger?.["@type"]).toBe("AbsoluteTrigger");
-    expect(patched.data.links?.link1?.href).toBe("https://example.com");
-    expect(patched.data.relatedTo?.r1?.relation?.parent).toBe(true);
-  });
+    it("allows patch to add nested maps with defaults", () => {
+        const event = makeEvent();
+        const patched = event.patch(
+            {
+                locations: {
+                    l1: { "@type": "Location", name: "Room A" },
+                },
+                virtualLocations: {
+                    v1: {
+                        "@type": "VirtualLocation",
+                        uri: "https://example.com",
+                    },
+                },
+                participants: {
+                    p1: {
+                        "@type": "Participant",
+                        roles: { attendee: true },
+                        email: "a@example.com",
+                    },
+                },
+                alerts: {
+                    a1: {
+                        "@type": "Alert",
+                        trigger: {
+                            "@type": "AbsoluteTrigger",
+                            when: "2026-02-01T01:00:00Z",
+                        },
+                    },
+                },
+                links: {
+                    link1: { "@type": "Link", href: "https://example.com" },
+                },
+                relatedTo: {
+                    r1: { "@type": "Relation", relation: { parent: true } },
+                },
+            },
+            { now: fixedNow },
+        );
+        expect(patched.data.locations?.l1?.name).toBe("Room A");
+        expect(patched.data.virtualLocations?.v1?.uri).toBe(
+            "https://example.com",
+        );
+        expect(patched.data.participants?.p1?.email).toBe("a@example.com");
+        expect(patched.data.alerts?.a1?.trigger?.["@type"]).toBe(
+            "AbsoluteTrigger",
+        );
+        expect(patched.data.links?.link1?.href).toBe("https://example.com");
+        expect(patched.data.relatedTo?.r1?.relation?.parent).toBe(true);
+    });
 
-  it("increments sequence for participants-only patch", () => {
-    const event = makeEvent();
-    const patched = event.patch(
-      {
-        participants: {
-          p1: {
-            "@type": "Participant",
-            roles: { attendee: true },
-          },
-        },
-      },
-      { now: fixedNow },
-    );
-    expect(patched.data.sequence ?? 0).toBe(1);
-  });
+    it("increments sequence for participants-only patch", () => {
+        const event = makeEvent();
+        const patched = event.patch(
+            {
+                participants: {
+                    p1: {
+                        "@type": "Participant",
+                        roles: { attendee: true },
+                    },
+                },
+            },
+            { now: fixedNow },
+        );
+        expect(patched.data.sequence ?? 0).toBe(1);
+    });
 });
 
 describe("createUid", () => {
-  it("generates unique-ish id format", () => {
-    const uid = createUid();
-    expect(uid).toMatch(/^[0-9a-f-]{36}$/);
-  });
+    it("generates unique-ish id format", () => {
+        const uid = createUid();
+        expect(uid).toMatch(/^[0-9a-f-]{36}$/);
+    });
 });
