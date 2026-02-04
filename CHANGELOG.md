@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.5
+
+- Fix: allow `expandRecurrencePaged` cursor to accept `undefined` under `exactOptionalPropertyTypes`.
+- Fix: restore `TimeZoneId` type import to resolve build errors.
+- Chore: align `@ts-expect-error` placement in search tests.
+- Chore: update pre-commit hook to run lint-staged, build, tsdown, and tests.
+
 ## 0.5.4
 
 - Fix: export timezone types as type-only to avoid tsdown warnings.

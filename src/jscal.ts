@@ -182,7 +182,7 @@ export const JsCal = {
     expandRecurrencePaged(
         items: Array<JSCalendarObject | { data: JSCalendarObject }>,
         range: { from: Date; to: Date },
-        options: { limit: number; cursor?: string },
+        options: { limit: number; cursor?: string | undefined },
     ): { items: JSCalendarObject[]; nextCursor?: string } {
         return expandRecurrencePaged(normalizeItems(items), range, options);
     },

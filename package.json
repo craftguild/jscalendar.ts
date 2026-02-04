@@ -1,6 +1,6 @@
 {
     "name": "@craftguild/jscalendar",
-    "version": "0.5.4",
+    "version": "0.5.5",
     "description": "RFC 8984 (JSCalendar) data model helpers for TypeScript",
     "license": "MIT",
     "type": "module",

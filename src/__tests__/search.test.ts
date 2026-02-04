@@ -321,8 +321,8 @@ describe("search helpers", () => {
             uid: "u1",
             updated: "2026-02-01T00:00:00Z",
         };
-        // @ts-expect-error unknown object type
         const results = filterByDateRange(
+            // @ts-expect-error unknown object type
             [unknownObject],
             { start: "2026-02-01T00:00:00Z" },
             { includeIncomparable: true },
@@ -336,8 +336,8 @@ describe("search helpers", () => {
             uid: "u2",
             updated: "2026-02-01T00:00:00Z",
         };
-        // @ts-expect-error unknown object type
         const included = filterByDateRange(
+            // @ts-expect-error unknown object type
             [unknownObject],
             { start: new Date("2026-02-01T00:00:00Z") },
             { includeIncomparable: true },

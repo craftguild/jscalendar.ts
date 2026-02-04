@@ -1,3 +1,4 @@
+import type { TimeZoneId } from "./timezones.js";
 export type { TimeZoneId, TimeZoneInput } from "./timezones.js";
 
 export type Id = string;

@@ -82,7 +82,7 @@ export function* expandRecurrence(
 export function expandRecurrencePaged(
     items: JSCalendarObject[],
     range: RecurrenceRange,
-    options: { limit: number; cursor?: string },
+    options: { limit: number; cursor?: string | undefined },
 ): { items: JSCalendarObject[]; nextCursor?: string } {
     const result: JSCalendarObject[] = [];
     let nextCursor: string | undefined;
