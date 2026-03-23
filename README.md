@@ -13,8 +13,9 @@ model toolkit you can use in web apps, CLIs, or services.
 Primary object types are **Event**, **Task**, and **Group**. A **Group**
 acts as a container when you want to bundle multiple objects. The API is
 intentionally small but opinionated: constructors normalize required
-fields, validation is strict by default, and `patch` applies RFC 8984
-PatchObject semantics.
+fields, validation is strict by default, and `patch` applies RFC 6902
+JSON Patch operations using RFC 6901 JSON Pointer paths, then validates
+the result as an RFC 8984 JSCalendar object.
 
 For developer experience, the library offers builder helpers that fill
 `@type` fields and validate nested structures (participants, locations,
@@ -226,67 +227,87 @@ JSON.stringify(plain);
 
 // Changes do not affect each other.
 plain.title = "Exported";
-const updated = event.patch({ title: "Live" });
+const updated = event.patch([{ op: "replace", path: "/title", value: "Live" }]);
 ```
 
 ## Patch Usage
 
-Patch helpers return new instances and keep metadata such as
-`updated` and `sequence` consistent. Use `patch` for RFC 8984 PatchObject
-semantics. You can set raw values directly, or use helper methods if you
-prefer validated, type-safe inputs.
+Patch helpers return new instances and keep metadata such as `updated` and
+`sequence` consistent. `patch` applies RFC 6902 JSON Patch operations using
+RFC 6901 JSON Pointer paths. Patched results are validated as RFC 8984
+JSCalendar objects by default.
+
+Supported operations are `add`, `remove`, `replace`, `move`, `copy`, and
+`test`.
+
+Basic replacement:
 
 ```ts
-const patchedEvent = event.patch({ title: "Updated title" });
-const patchedAgain = patchedEvent.patch({ title: "Patched title" });
+const patchedEvent = event.patch([
+    { op: "replace", path: "/title", value: "Updated title" },
+]);
+
+const patchedAgain = patchedEvent.patch([
+    { op: "replace", path: "/title", value: "Patched title" },
+]);
 ```
 
-You can also patch nested maps by replacing the full map in one call:
+Adding nested maps with raw values:
 
 ```ts
-const withParticipants = event.patch({
-    participants: {
-        p1: {
-            "@type": "Participant",
-            roles: { attendee: true },
-            email: "a@example.com",
+const withParticipants = event.patch([
+    {
+        op: "add",
+        path: "/participants",
+        value: {
+            p1: {
+                "@type": "Participant",
+                roles: { attendee: true },
+                email: "a@example.com",
+            },
         },
     },
-});
+]);
 ```
 
-Two common patterns for nested patches:
-
-1. Set raw values directly
+You can use builder helpers for nested values as well:
 
 ```ts
-const withLocations = event.patch({
-    locations: {
-        l1: { "@type": "Location", name: "Room A" },
+const withParticipants = event.patch([
+    {
+        op: "add",
+        path: "/participants",
+        value: JsCal.participants([
+            {
+                id: "p1",
+                value: JsCal.Participant({
+                    roles: { attendee: true },
+                    email: "a@example.com",
+                }),
+            },
+        ]),
     },
-});
+]);
 ```
 
-2. Use helpers to build or merge map values
+You can patch nested fields directly with JSON Pointer paths:
 
 ```ts
-const withLocations = event.patch({
-    locations: JsCal.locations([
-        { id: "l1", value: JsCal.Location({ name: "Room A" }) },
-        { value: JsCal.Location({ name: "Room B" }) },
-    ]),
-});
+const updatedEmail = withParticipants.patch([
+    {
+        op: "replace",
+        path: "/participants/p1/email",
+        value: "b@example.com",
+    },
+]);
 ```
 
-To merge into an existing map, pass the current map as the second argument:
+Removing a value:
 
 ```ts
-const withLocations = event.patch({
-    locations: JsCal.locations(
-        [{ value: JsCal.Location({ name: "Room C" }) }],
-        event.data.locations,
-    ),
-});
+const withoutDescription = event.patch([
+    { op: "remove", path: "/description" },
+]);
 ```
 
 ## Date Inputs and Time Zones

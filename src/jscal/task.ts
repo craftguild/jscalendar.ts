@@ -1,4 +1,4 @@
-import type { Task, TaskPatch } from "../types.js";
+import type { Task } from "../types.js";
 import { resolveTimeZone } from "../timezones.js";
 import { deepClone, nowUtc } from "../utils.js";
 import { validateJsCalendarObject } from "../validate.js";
@@ -8,7 +8,7 @@ import { toLocalDateTime, toUtcDateTime } from "./datetime.js";
 import type { CreateOptions, TaskInput } from "./types.js";
 import { Base } from "./base.js";
 
-export class TaskObject extends Base<Task, TaskPatch, TaskObject> {
+export class TaskObject extends Base<Task, TaskObject> {
     /**
      * Wrap updated data in a new TaskObject.
      * @param data Updated task data.

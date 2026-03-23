@@ -1,4 +1,4 @@
-import type { JsonValue, PatchLike } from "../types.js";
+import type { JSCalendarObject, JsonValue, PatchLike } from "../types.js";
 import { TimeZones } from "../timezones.js";
 import { fail } from "./error.js";
 import {
@@ -6,6 +6,9 @@ import {
     DATE_TIME,
     DURATION,
     ID_PATTERN,
+    TYPE_EVENT,
+    TYPE_GROUP,
+    TYPE_TASK,
     UTF8,
     Z_SUFFIX,
 } from "./constants.js";
@@ -35,9 +38,7 @@ export function utf8Length(value: string): number {
  * @param value Input value.
  * @return True if the value is a record.
  */
-export function isRecord(
-    value: object | null | undefined,
-): value is Record<string, JsonValue> {
+export function isRecord(value: unknown): value is Record<string, JsonValue> {
     return !!value && isObjectValue(value) && !Array.isArray(value);
 }
 
@@ -425,5 +426,23 @@ export function assertPatchObject(
     for (const [key, entry] of Object.entries(value)) {
         if (entry === null) continue;
         assertJsonValue(entry, `${path}.${key}`);
+    }
+}
+
+/**
+ * Assert a value is a JSCalendar object.
+ * @param value Value to validate.
+ * @param path Validation path for error messages.
+ * @return Nothing.
+ */
+export function assertJsCalendarObject(
+    value: unknown,
+    path = "object",
+): asserts value is JSCalendarObject {
+    if (!isRecord(value)) fail(path, "must be an object");
+
+    const type = value["@type"];
+    if (type !== TYPE_EVENT && type !== TYPE_TASK && type !== TYPE_GROUP) {
+        fail(`${path}["@type"]`, "must be Event, Task, or Group");
     }
 }
