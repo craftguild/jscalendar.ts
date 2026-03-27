@@ -1,4 +1,4 @@
-import type { Event, EventPatch } from "../types.js";
+import type { Event } from "../types.js";
 import { resolveTimeZone } from "../timezones.js";
 import { deepClone, nowUtc } from "../utils.js";
 import { validateJsCalendarObject } from "../validate.js";
@@ -10,7 +10,7 @@ import type { CreateOptions, EventInput } from "./types.js";
 import { Base } from "./base.js";
 import { isStringValue, isNumberValue } from "../utils.js";
 
-export class EventObject extends Base<Event, EventPatch, EventObject> {
+export class EventObject extends Base<Event, EventObject> {
     /**
      * Wrap updated data in a new EventObject.
      * @param data Updated event data.

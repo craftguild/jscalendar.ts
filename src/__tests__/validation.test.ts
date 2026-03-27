@@ -52,7 +52,38 @@ describe("validation", () => {
 
         expect(event.get("start")).toBe("2026-02-01T10:00:00Z");
 
-        event.patch({ start: "2026-02-01T10:00:00Z" }, { validate: false });
+        const patched = event.patch(
+            [{ op: "replace", path: "/start", value: "2026-02-01T10:00:00Z" }],
+            { validate: false },
+        );
+
+        expect(patched.get("start")).toBe("2026-02-01T10:00:00Z");
+    });
+
+    it("does not mutate original when post-patch validation fails", () => {
+        const event = new JsCal.Event({
+            title: "Before",
+            start: "2026-02-01T10:00:00",
+        });
+
+        const beforeTitle = event.get("title");
+        const beforeStart = event.get("start");
+        const beforeSequence = event.get("sequence");
+
+        expect(() =>
+            event.patch([
+                { op: "replace", path: "/title", value: "Temp" },
+                {
+                    op: "replace",
+                    path: "/start",
+                    value: "2026-02-01T10:00:00Z",
+                },
+            ]),
+        ).toThrowError("object.start: must not include time zone offset");
+
+        expect(event.get("title")).toBe(beforeTitle);
+        expect(event.get("start")).toBe(beforeStart);
+        expect(event.get("sequence")).toBe(beforeSequence);
     });
 
     it("throws ValidationError with path and message", () => {

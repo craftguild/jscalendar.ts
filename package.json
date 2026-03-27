@@ -41,7 +41,8 @@
     },
     "dependencies": {
         "date-fns": "^4.1.0",
-        "date-fns-tz": "^3.2.0"
+        "date-fns-tz": "^3.2.0",
+        "json-joy": "^18.0.0"
     },
     "lint-staged": {
         "**/*": "prettier --write --ignore-unknown"

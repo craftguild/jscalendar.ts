@@ -1,4 +1,4 @@
-import type { Event, Group, GroupPatch, Task } from "../types.js";
+import type { Group } from "../types.js";
 import { deepClone, nowUtc } from "../utils.js";
 import { validateJsCalendarObject } from "../validate.js";
 import { applyCommonDefaults } from "./defaults.js";
@@ -8,7 +8,7 @@ import { Base } from "./base.js";
 import { normalizeEntry } from "./normalize.js";
 import { toUtcDateTime } from "./datetime.js";
 
-export class GroupObject extends Base<Group, GroupPatch, GroupObject> {
+export class GroupObject extends Base<Group, GroupObject> {
     /**
      * Wrap updated data in a new GroupObject.
      * @param data Updated group data.
