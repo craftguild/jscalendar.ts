@@ -31,7 +31,7 @@ pnpm add @craftguild/jscalendar
 
 You can also load the library directly in the browser from `esm.sh`.
 The repository includes a single-file example at
-`examples/esm-browser-demo.html` that demonstrates:
+[`examples/browser/demo.html`](./examples/browser/demo.html) that demonstrates:
 
 - toggling between `Event` and `Task`
 - defining recurrence rules and expanding them within a date range
