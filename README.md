@@ -27,6 +27,30 @@ JSCalendar objects directly when your data already matches the spec.
 pnpm add @craftguild/jscalendar
 ```
 
+## Browser ESM Example
+
+You can also load the library directly in the browser from `esm.sh`.
+The repository includes a single-file example at
+`examples/esm-browser-demo.html` that demonstrates:
+
+- toggling between `Event` and `Task`
+- defining recurrence rules and expanding them within a date range
+- converting the result to iCalendar text with `JsCal.toICal([...])`
+
+```html
+<script type="module">
+    import { JsCal } from "https://esm.sh/@craftguild/jscalendar@0.5.6?bundle";
+
+    const event = new JsCal.Event({
+        title: "Browser demo",
+        start: "2026-04-01T09:00:00",
+        duration: "PT1H",
+    });
+
+    console.log(JsCal.toICal([event]));
+</script>
+```
+
 ## Quick Start
 
 ```ts
@@ -344,7 +368,7 @@ const d1 = JsCal.duration.minutes(90); // PT1H30M
 const d2 = JsCal.duration.from({ hours: 1, minutes: 15 }); // PT1H15M
 
 const tz = JsCal.timeZone("asia/tokyo"); // => Asia/Tokyo
-const tzList = JsCal.timeZones;
+const tzList = JsCal.timeZones; // Includes regional zones plus supported Etc/GMT IDs.
 ```
 
 ## Recurrence Expansion
