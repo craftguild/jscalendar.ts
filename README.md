@@ -383,9 +383,9 @@ The recurrence expansion API is a generator.
 Expansion follows RFC 8984 semantics for recurrence rules, including
 overrides and exclusions. The output instances contain `recurrenceId`
 and preserve the base object’s data unless a patch modifies fields.
-By default, the source item’s anchor occurrence is included to preserve
-backward compatibility. Pass `{ includeAnchor: false }` to exclude the
-source anchor and return only rule-expanded occurrences.
+By default, the source item’s anchor occurrence is included. Pass
+`{ includeAnchor: false }` to explicitly exclude the source anchor and
+return only rule-expanded occurrences.
 
 ```ts
 for (const occ of JsCal.expandRecurrence([event], {
