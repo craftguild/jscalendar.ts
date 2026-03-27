@@ -3,12 +3,16 @@ export type RecurrenceRange = {
     to: Date;
 };
 
+export type RecurrenceExpandOptions = {
+    includeAnchor?: boolean;
+};
+
 export type RecurrencePage = {
     items: import("../types.js").JSCalendarObject[];
     nextCursor?: string;
 };
 
-export type RecurrencePageOptions = {
+export type RecurrencePageOptions = RecurrenceExpandOptions & {
     limit: number;
     cursor?: string;
 };

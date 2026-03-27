@@ -1,4 +1,5 @@
 export type {
+    RecurrenceExpandOptions,
     RecurrenceRange,
     RecurrencePage,
     RecurrencePageOptions,

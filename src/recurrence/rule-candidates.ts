@@ -12,7 +12,13 @@ import {
     SKIP_OMIT,
 } from "./constants.js";
 import type { DateCandidate, DateTime, DayOfWeek } from "./types.js";
-import { addDays, addMonths, daysInMonth, pad } from "./date-utils.js";
+import {
+    addDays,
+    addMonths,
+    daysInMonth,
+    pad,
+    startOfWeek,
+} from "./date-utils.js";
 import {
     matchesByDay,
     matchesByMonthDay,
@@ -69,7 +75,7 @@ export function generateDateCandidates(
     }
 
     if (rule.frequency === FREQ_WEEKLY) {
-        let cursor = periodStart;
+        let cursor = startOfWeek(periodStart, firstDay);
         for (let i = 0; i < 7; i += 1) {
             result.push({
                 year: cursor.year,

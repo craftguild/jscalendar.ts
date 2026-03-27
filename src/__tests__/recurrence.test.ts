@@ -10,6 +10,16 @@ function collect(gen: Generator<JSCalendarObject>): JSCalendarObject[] {
     return result;
 }
 
+type IncludeAnchorCase = {
+    name: string;
+    event: InstanceType<typeof JsCal.Event>;
+    range: {
+        from: Date;
+        to: Date;
+    };
+    expected: string[];
+};
+
 describe("recurrence expansion", () => {
     it("sorts occurrences by recurrenceId across items", () => {
         const first = new JsCal.Event({
@@ -61,6 +71,255 @@ describe("recurrence expansion", () => {
             "2026-02-18T10:30:00",
             "2026-02-25T10:30:00",
         ]);
+    });
+
+    it("uses week boundaries for weekly byDay with large intervals", () => {
+        const event = new JsCal.Event({
+            title: "Biweekly-ish",
+            start: "2026-03-27T09:00:00",
+            recurrenceRules: [
+                {
+                    "@type": "RecurrenceRule",
+                    frequency: "weekly",
+                    interval: 14,
+                    byDay: [{ "@type": "NDay", day: "we" }],
+                    until: "2026-04-27T08:59:00",
+                },
+            ],
+        });
+
+        const occ = collect(
+            JsCal.expandRecurrence([event], {
+                from: new Date("2026-03-01"),
+                to: new Date("2026-04-27T08:59:00"),
+            }),
+        );
+
+        const starts = occ.map((o) => o.recurrenceId);
+        expect(starts).toEqual(["2026-03-27T09:00:00"]);
+    });
+
+    it("omits the source occurrence when includeAnchor is false", () => {
+        const event = new JsCal.Event({
+            title: "Weekly",
+            start: "2026-03-27T09:00:00",
+            recurrenceRules: [
+                {
+                    "@type": "RecurrenceRule",
+                    frequency: "weekly",
+                    byDay: [{ "@type": "NDay", day: "we" }],
+                    count: 3,
+                },
+            ],
+        });
+
+        const occ = collect(
+            JsCal.expandRecurrence(
+                [event],
+                {
+                    from: new Date("2026-03-01"),
+                    to: new Date("2026-04-30"),
+                },
+                { includeAnchor: false },
+            ),
+        );
+
+        const starts = occ.map((o) => o.recurrenceId);
+        expect(starts).toEqual([
+            "2026-04-01T09:00:00",
+            "2026-04-08T09:00:00",
+            "2026-04-15T09:00:00",
+        ]);
+    });
+
+    it("omits the source occurrence for BY* rules when includeAnchor is false", () => {
+        const cases: IncludeAnchorCase[] = [
+            {
+                name: "weekly byDay",
+                event: new JsCal.Event({
+                    title: "Weekly",
+                    start: "2026-03-27T09:00:00",
+                    recurrenceRules: [
+                        {
+                            "@type": "RecurrenceRule",
+                            frequency: "weekly",
+                            byDay: [{ "@type": "NDay", day: "we" }],
+                            count: 3,
+                        },
+                    ],
+                }),
+                range: {
+                    from: new Date("2026-03-01"),
+                    to: new Date("2026-04-30"),
+                },
+                expected: [
+                    "2026-04-01T09:00:00",
+                    "2026-04-08T09:00:00",
+                    "2026-04-15T09:00:00",
+                ],
+            },
+            {
+                name: "monthly byDay nthOfPeriod",
+                event: new JsCal.Event({
+                    title: "Second Monday",
+                    start: "2026-02-09T09:00:00",
+                    recurrenceRules: [
+                        {
+                            "@type": "RecurrenceRule",
+                            frequency: "monthly",
+                            byDay: [
+                                { "@type": "NDay", day: "mo", nthOfPeriod: 2 },
+                            ],
+                            count: 3,
+                        },
+                    ],
+                }),
+                range: {
+                    from: new Date("2026-02-01"),
+                    to: new Date("2026-04-30"),
+                },
+                expected: ["2026-03-09T09:00:00", "2026-04-13T09:00:00"],
+            },
+            {
+                name: "yearly byDay nthOfPeriod",
+                event: new JsCal.Event({
+                    title: "Last Sunday of year",
+                    start: "2026-12-27T09:00:00",
+                    recurrenceRules: [
+                        {
+                            "@type": "RecurrenceRule",
+                            frequency: "yearly",
+                            byDay: [
+                                { "@type": "NDay", day: "su", nthOfPeriod: -1 },
+                            ],
+                            count: 2,
+                        },
+                    ],
+                }),
+                range: {
+                    from: new Date("2026-12-01"),
+                    to: new Date("2027-12-31"),
+                },
+                expected: ["2027-12-26T09:00:00"],
+            },
+            {
+                name: "monthly byMonthDay",
+                event: new JsCal.Event({
+                    title: "Last Day",
+                    start: "2026-01-31T09:00:00",
+                    recurrenceRules: [
+                        {
+                            "@type": "RecurrenceRule",
+                            frequency: "monthly",
+                            byMonthDay: [-1],
+                            count: 3,
+                        },
+                    ],
+                }),
+                range: {
+                    from: new Date("2026-01-01"),
+                    to: new Date("2026-03-31"),
+                },
+                expected: ["2026-02-28T09:00:00", "2026-03-31T09:00:00"],
+            },
+            {
+                name: "yearly byYearDay",
+                event: new JsCal.Event({
+                    title: "Day 32",
+                    start: "2026-01-01T09:00:00",
+                    recurrenceRules: [
+                        {
+                            "@type": "RecurrenceRule",
+                            frequency: "yearly",
+                            byYearDay: [32],
+                            count: 2,
+                        },
+                    ],
+                }),
+                range: {
+                    from: new Date("2026-01-01"),
+                    to: new Date("2027-02-10"),
+                },
+                expected: ["2026-02-01T09:00:00", "2027-02-01T09:00:00"],
+            },
+            {
+                name: "yearly byWeekNo",
+                event: new JsCal.Event({
+                    title: "Week 1 Thursday",
+                    start: "2026-01-01T09:00:00",
+                    recurrenceRules: [
+                        {
+                            "@type": "RecurrenceRule",
+                            frequency: "yearly",
+                            byWeekNo: [1],
+                            byDay: [{ "@type": "NDay", day: "th" }],
+                            count: 2,
+                        },
+                    ],
+                }),
+                range: {
+                    from: new Date("2026-01-01"),
+                    to: new Date("2027-01-10"),
+                },
+                expected: ["2027-01-07T09:00:00"],
+            },
+            {
+                name: "yearly byMonth",
+                event: new JsCal.Event({
+                    title: "ByMonth",
+                    start: "2026-03-01T09:00:00",
+                    recurrenceRules: [
+                        {
+                            "@type": "RecurrenceRule",
+                            frequency: "yearly",
+                            byMonth: ["3"],
+                            count: 2,
+                        },
+                    ],
+                }),
+                range: {
+                    from: new Date("2026-03-01"),
+                    to: new Date("2027-03-02"),
+                },
+                expected: ["2027-03-01T09:00:00"],
+            },
+            {
+                name: "monthly bySetPosition",
+                event: new JsCal.Event({
+                    title: "Last Wednesday",
+                    start: "2026-01-07T10:00:00",
+                    recurrenceRules: [
+                        {
+                            "@type": "RecurrenceRule",
+                            frequency: "monthly",
+                            byDay: [{ "@type": "NDay", day: "we" }],
+                            bySetPosition: [-1],
+                            count: 4,
+                        },
+                    ],
+                }),
+                range: {
+                    from: new Date("2026-01-01"),
+                    to: new Date("2026-03-31"),
+                },
+                expected: [
+                    "2026-01-28T10:00:00",
+                    "2026-02-25T10:00:00",
+                    "2026-03-25T10:00:00",
+                ],
+            },
+        ];
+
+        for (const testCase of cases) {
+            const occ = collect(
+                JsCal.expandRecurrence([testCase.event], testCase.range, {
+                    includeAnchor: false,
+                }),
+            );
+
+            const starts = occ.map((o) => o.recurrenceId);
+            expect(starts, testCase.name).toEqual(testCase.expected);
+        }
     });
 
     it("adds implicit byDay for weekly rules", () => {
@@ -793,6 +1052,30 @@ describe("recurrence expansion", () => {
             "2026-02-23T09:00:00",
         ]);
         expect(page2.nextCursor).toBe("2026-02-23T09:00:00");
+    });
+
+    it("pages recurrence expansion without the source occurrence", () => {
+        const event = new JsCal.Event({
+            title: "Weekly",
+            start: "2026-02-02T09:00:00",
+            recurrenceRules: [
+                { "@type": "RecurrenceRule", frequency: "weekly", count: 3 },
+            ],
+        });
+
+        const range = {
+            from: new Date("2026-02-01"),
+            to: new Date("2026-03-01"),
+        };
+
+        const page = JsCal.expandRecurrencePaged([event], range, {
+            limit: 2,
+            includeAnchor: false,
+        });
+
+        const starts = page.items.map((o) => o.recurrenceId);
+        expect(starts).toEqual(["2026-02-09T09:00:00", "2026-02-16T09:00:00"]);
+        expect(page.nextCursor).toBe("2026-02-16T09:00:00");
     });
 
     it("returns empty page when cursor is beyond range", () => {

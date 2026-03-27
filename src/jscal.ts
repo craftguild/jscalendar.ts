@@ -164,13 +164,15 @@ export const JsCal = {
      * Expand recurrence rules into concrete occurrences.
      * @param items JSCalendar objects or JsCal instances.
      * @param range Date range bounds.
+     * @param options Expansion options.
      * @return Generator of expanded JSCalendar objects.
      */
     expandRecurrence(
         items: Array<JSCalendarObject | { data: JSCalendarObject }>,
         range: { from: Date; to: Date },
+        options?: import("./recurrence.js").RecurrenceExpandOptions,
     ): Generator<JSCalendarObject> {
-        return expandRecurrence(normalizeItems(items), range);
+        return expandRecurrence(normalizeItems(items), range, options);
     },
     /**
      * Expand recurrence rules with pagination support.
@@ -182,7 +184,7 @@ export const JsCal = {
     expandRecurrencePaged(
         items: Array<JSCalendarObject | { data: JSCalendarObject }>,
         range: { from: Date; to: Date },
-        options: { limit: number; cursor?: string | undefined },
+        options: import("./recurrence.js").RecurrencePageOptions,
     ): { items: JSCalendarObject[]; nextCursor?: string } {
         return expandRecurrencePaged(normalizeItems(items), range, options);
     },

@@ -39,7 +39,7 @@ The repository includes a single-file example at
 
 ```html
 <script type="module">
-    import { JsCal } from "https://esm.sh/@craftguild/jscalendar@0.5.6?bundle";
+    import { JsCal } from "https://esm.sh/@craftguild/jscalendar@0.6.0?bundle";
 
     const event = new JsCal.Event({
         title: "Browser demo",
@@ -76,6 +76,11 @@ const task = new JsCal.Task({
 const from = new Date(2026, 0, 1, 0, 0, 0, 0);
 const to = new Date(2026, 0, 31, 0, 0, 0, 0);
 const generator = JsCal.expandRecurrence([event, task], { from, to });
+const withoutAnchor = JsCal.expandRecurrence(
+    [event],
+    { from, to },
+    { includeAnchor: false },
+);
 
 for (const item of generator) {
     // Expanded JSCalendar objects for events and tasks in the range.
@@ -378,12 +383,23 @@ The recurrence expansion API is a generator.
 Expansion follows RFC 8984 semantics for recurrence rules, including
 overrides and exclusions. The output instances contain `recurrenceId`
 and preserve the base object’s data unless a patch modifies fields.
+By default, the source item’s anchor occurrence is included to preserve
+backward compatibility. Pass `{ includeAnchor: false }` to exclude the
+source anchor and return only rule-expanded occurrences.
 
 ```ts
 for (const occ of JsCal.expandRecurrence([event], {
     from: new Date("2026-02-01"),
     to: new Date("2026-03-01"),
 })) {
+    console.log(occ);
+}
+
+for (const occ of JsCal.expandRecurrence(
+    [event],
+    { from: new Date("2026-02-01"), to: new Date("2026-03-01") },
+    { includeAnchor: false },
+)) {
     console.log(occ);
 }
 ```
