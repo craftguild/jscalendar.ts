@@ -1,15 +1,12 @@
 import type { NDay, RecurrenceRule } from "../types.js";
 import { FREQ_MONTHLY, FREQ_YEARLY } from "./constants.js";
-import type { DateCandidate, DateTime, DayOfWeek } from "./types.js";
-import {
-    addDays,
-    dayOfWeek,
-    dayOfYear,
-    daysInMonth,
-    daysInYear,
-    totalWeeksInYear,
-    weekNumber,
-} from "./date-utils.js";
+import type {
+    CalendarBackend,
+    CalendarDateParts,
+    DateCandidate,
+    DateTime,
+    DayOfWeek,
+} from "./types.js";
 
 /**
  * Check whether a candidate date matches BYMONTHDAY values.
@@ -20,8 +17,9 @@ import {
 export function matchesByMonthDay(
     date: DateCandidate,
     byMonthDay: number[],
+    backend: CalendarBackend,
 ): boolean {
-    const dim = daysInMonth(date.year, date.month);
+    const dim = backend.daysInMonth(date);
     for (const v of byMonthDay) {
         if (v > 0 && date.day === v) return true;
         if (v < 0 && date.day === dim + v + 1) return true;
@@ -38,16 +36,10 @@ export function matchesByMonthDay(
 export function matchesByYearDay(
     date: DateCandidate,
     byYearDay: number[],
+    backend: CalendarBackend,
 ): boolean {
-    const diy = daysInYear(date.year);
-    const doy = dayOfYear({
-        year: date.year,
-        month: date.month,
-        day: date.day,
-        hour: 0,
-        minute: 0,
-        second: 0,
-    });
+    const diy = backend.daysInYear(date.year);
+    const doy = backend.dayOfYear(date);
     for (const v of byYearDay) {
         if (v > 0 && doy === v) return true;
         if (v < 0 && doy === diy + v + 1) return true;
@@ -65,20 +57,11 @@ export function matchesByYearDay(
 export function matchesByWeekNo(
     date: DateCandidate,
     byWeekNo: number[],
+    backend: CalendarBackend,
     firstDay: DayOfWeek,
 ): boolean {
-    const week = weekNumber(
-        {
-            year: date.year,
-            month: date.month,
-            day: date.day,
-            hour: 0,
-            minute: 0,
-            second: 0,
-        },
-        firstDay,
-    );
-    const total = totalWeeksInYear(date.year, firstDay);
+    const week = backend.weekNumber(date, firstDay);
+    const total = backend.weeksInYear(date.year, firstDay);
     for (const v of byWeekNo) {
         if (v > 0 && week === v) return true;
         if (v < 0 && week === total + v + 1) return true;
@@ -100,16 +83,10 @@ export function matchesByDay(
     byDay: NDay[],
     frequency: RecurrenceRule["frequency"],
     periodStart: DateTime,
+    backend: CalendarBackend,
     firstDay: DayOfWeek,
 ): boolean {
-    const weekday = dayOfWeek({
-        year: date.year,
-        month: date.month,
-        day: date.day,
-        hour: 0,
-        minute: 0,
-        second: 0,
-    });
+    const weekday = backend.dayOfWeek(date);
     for (const entry of byDay) {
         if (entry.nthOfPeriod === undefined) {
             if (entry.day === weekday) return true;
@@ -122,8 +99,9 @@ export function matchesByDay(
             date,
             frequency,
             periodStart,
+            backend,
             firstDay,
-        ).filter((d) => dayOfWeek(d) === entry.day);
+        ).filter((d) => backend.dayOfWeek(d) === entry.day);
         const index =
             entry.nthOfPeriod > 0
                 ? entry.nthOfPeriod - 1
@@ -133,7 +111,7 @@ export function matchesByDay(
             if (
                 target &&
                 target.year === date.year &&
-                target.month === date.month &&
+                target.monthCode.value === date.monthCode.value &&
                 target.day === date.day
             ) {
                 return true;
@@ -155,53 +133,49 @@ function listNthPeriodDates(
     date: DateCandidate,
     frequency: RecurrenceRule["frequency"],
     periodStart: DateTime,
+    backend: CalendarBackend,
     firstDay: DayOfWeek,
-): DateTime[] {
+): CalendarDateParts[] {
     if (frequency === FREQ_YEARLY) {
-        const result: DateTime[] = [];
-        for (let month = 1; month <= 12; month += 1) {
-            const days = daysInMonth(date.year, month);
+        const result: CalendarDateParts[] = [];
+        for (const monthCode of backend.monthsInYear(date.year)) {
+            const days = backend.daysInMonth({
+                year: date.year,
+                monthCode,
+                day: 1,
+            });
             for (let day = 1; day <= days; day += 1) {
                 result.push({
                     year: date.year,
-                    month,
+                    monthCode,
                     day,
-                    hour: 0,
-                    minute: 0,
-                    second: 0,
                 });
             }
         }
         return result;
     }
     if (frequency === FREQ_MONTHLY) {
-        const result: DateTime[] = [];
-        const days = daysInMonth(date.year, date.month);
+        const result: CalendarDateParts[] = [];
+        const days = backend.daysInMonth(date);
         for (let day = 1; day <= days; day += 1) {
             result.push({
                 year: date.year,
-                month: date.month,
+                monthCode: date.monthCode,
                 day,
-                hour: 0,
-                minute: 0,
-                second: 0,
             });
         }
         return result;
     }
 
-    const result: DateTime[] = [];
+    const result: CalendarDateParts[] = [];
     let cursor = periodStart;
     for (let i = 0; i < 7; i += 1) {
         result.push({
             year: cursor.year,
-            month: cursor.month,
+            monthCode: cursor.monthCode,
             day: cursor.day,
-            hour: 0,
-            minute: 0,
-            second: 0,
         });
-        cursor = addDays(cursor, 1);
+        cursor = backend.addDays(cursor, 1);
     }
     return result;
 }

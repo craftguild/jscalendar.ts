@@ -1,4 +1,5 @@
 import type { RecurrenceRule } from "../types.js";
+import { formatMonthToken } from "./month-tokens.js";
 import {
     FREQ_HOURLY,
     FREQ_MINUTELY,
@@ -7,8 +8,7 @@ import {
     FREQ_WEEKLY,
     FREQ_YEARLY,
 } from "./constants.js";
-import type { DateTime } from "./types.js";
-import { dayOfWeek } from "./date-utils.js";
+import type { CalendarBackend, DateTime } from "./types.js";
 
 /**
  * Normalize rule fields by copying arrays and filling defaults from the start date-time.
@@ -19,6 +19,7 @@ import { dayOfWeek } from "./date-utils.js";
 export function normalizeRule(
     rule: RecurrenceRule,
     start: DateTime,
+    backend: CalendarBackend,
 ): RecurrenceRule {
     const normalized: RecurrenceRule = {
         ...rule,
@@ -59,7 +60,7 @@ export function normalizeRule(
         normalized.frequency === FREQ_WEEKLY &&
         (!normalized.byDay || normalized.byDay.length === 0)
     ) {
-        normalized.byDay = [{ "@type": "NDay", day: dayOfWeek(start) }];
+        normalized.byDay = [{ "@type": "NDay", day: backend.dayOfWeek(start) }];
     }
 
     if (
@@ -82,7 +83,7 @@ export function normalizeRule(
         const hasByDay = normalized.byDay && normalized.byDay.length > 0;
 
         if (!hasByMonth && !hasByWeekNo && (hasByMonthDay || !hasByDay)) {
-            normalized.byMonth = [start.month.toString()];
+            normalized.byMonth = [formatMonthToken(start.monthCode)];
         }
 
         if (!hasByMonthDay && !hasByWeekNo && !hasByDay) {
@@ -90,7 +91,9 @@ export function normalizeRule(
         }
 
         if (hasByWeekNo && !hasByMonthDay && !hasByDay) {
-            normalized.byDay = [{ "@type": "NDay", day: dayOfWeek(start) }];
+            normalized.byDay = [
+                { "@type": "NDay", day: backend.dayOfWeek(start) },
+            ];
         }
     }
 

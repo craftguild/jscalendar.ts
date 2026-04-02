@@ -203,7 +203,7 @@ describe("validation", () => {
                     ],
                 }),
         ).toThrowError(
-            "object.recurrenceRules[0].byMonthDay[0]: must be an integer between -31 and 31, excluding 0",
+            "object.recurrenceRules[0].byMonthDay[0]: must be a non-zero integer",
         );
     });
 
@@ -292,7 +292,41 @@ describe("validation", () => {
         expect(event.get("method")).toBe("publish");
     });
 
-    it("rejects non-gregorian rscale values", () => {
+    it("accepts non-gregorian rscale values and leap month tokens", () => {
+        const event = new JsCal.Event({
+            start: "2026-02-01T10:00:00",
+            recurrenceRules: [
+                {
+                    "@type": "RecurrenceRule",
+                    frequency: "daily",
+                    rscale: "hebrew",
+                    byMonth: ["5L"],
+                    byWeekNo: [53],
+                    byYearDay: [300],
+                },
+            ],
+        });
+
+        expect(event.get("recurrenceRules")?.[0]?.rscale).toBe("hebrew");
+    });
+
+    it("accepts large byMonthDay values for skip-based adjustment", () => {
+        const event = new JsCal.Event({
+            start: "2026-02-01T10:00:00",
+            recurrenceRules: [
+                {
+                    "@type": "RecurrenceRule",
+                    frequency: "monthly",
+                    byMonthDay: [99],
+                    skip: "backward",
+                },
+            ],
+        });
+
+        expect(event.get("recurrenceRules")?.[0]?.byMonthDay).toEqual([99]);
+    });
+
+    it("rejects invalid rscale values during validation", () => {
         expect(
             () =>
                 new JsCal.Event({
@@ -301,12 +335,12 @@ describe("validation", () => {
                         {
                             "@type": "RecurrenceRule",
                             frequency: "daily",
-                            rscale: "hebrew",
+                            rscale: "not-a-calendar" as unknown as import("../types.js").RecurrenceRule["rscale"],
                         },
                     ],
                 }),
         ).toThrowError(
-            "object.recurrenceRules[0].rscale: only gregorian is supported",
+            "object.recurrenceRules[0].rscale: Unsupported rscale: not-a-calendar",
         );
     });
 

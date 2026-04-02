@@ -222,6 +222,14 @@ This double validation is intentional for safety: even if data originates
 from an untrusted or inconsistent source, you still get strict RFC 8984
 checks at the point of object creation.
 
+For recurrence rules, validation is split between syntax checks at creation
+time and calendar-aware checks during expansion:
+
+- unknown `rscale` values are rejected during object creation
+- `byMonth` accepts RFC 7529 month tokens such as `5` and `5L`
+- `byMonthDay`, `byYearDay`, and `byWeekNo` are validated as non-zero integers
+- known calendars that are unavailable in the active runtime still fail fast during recurrence expansion
+
 ## Ejecting to plain objects
 
 `JsCal.Event`/`JsCal.Task` are class instances with helper methods and a
@@ -485,9 +493,16 @@ This library is designed to be practical and lightweight, not a full RFC engine.
 The items below are the known deltas between a strict RFC implementation
 and this library’s behavior.
 
-- **rscale**: only `gregorian` is supported; any other value throws.
-- **Validation**: strict type/format validation is enforced by default (RFC-style date/time and duration rules),
-  but can be disabled with `{ validate: false }` in create/update/patch.
+- **rscale**:
+    - recurrence expansion supports `gregorian` plus a registry-backed set of non-Gregorian calendars
+      when the active runtime can provide the required calendar backend
+    - unknown `rscale` values are rejected during object creation
+    - known calendars that are unavailable in the active runtime throw during recurrence expansion
+- **Validation**:
+    - strict type/format validation is enforced by default and can be disabled with `{ validate: false }`
+      in create/update/patch
+    - recurrence rule validation is intentionally split: object creation checks syntax and basic value shapes,
+      while some calendar-specific validity is deferred to recurrence expansion
 - **Time zone and DST**:
     - Range filtering and recurrence comparisons use `date-fns-tz`.
     - Recurrence generation still operates on LocalDateTime arithmetic and does not fully normalize

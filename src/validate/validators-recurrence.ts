@@ -3,7 +3,6 @@ import { fail } from "./error.js";
 import {
     DAY_OF_WEEK,
     RECURRENCE_FREQUENCY,
-    RSCALE_GREGORIAN,
     SKIP,
     TYPE_NDAY,
     TYPE_RECURRENCE_RULE,
@@ -17,6 +16,9 @@ import {
     assertUnsignedInt,
 } from "./asserts.js";
 import { isNumberValue, isStringValue } from "../utils.js";
+import { resolveRscaleDefinition } from "../recurrence/calendar/rscale-registry.js";
+
+const MONTH_TOKEN = /^[1-9][0-9]*L?$/i;
 
 /**
  * Validate n day structure.
@@ -47,8 +49,18 @@ export function validateRecurrenceRule(
         fail(`${path}.frequency`, "must be a valid frequency");
     assertUnsignedInt(value.interval, `${path}.interval`);
     assertUnsignedInt(value.count, `${path}.count`);
-    if (value.rscale !== undefined && value.rscale !== RSCALE_GREGORIAN) {
-        fail(`${path}.rscale`, "only gregorian is supported");
+    assertString(value.rscale, `${path}.rscale`);
+    if (value.rscale !== undefined) {
+        try {
+            resolveRscaleDefinition(value.rscale);
+        } catch (error) {
+            fail(
+                `${path}.rscale`,
+                error instanceof Error
+                    ? error.message
+                    : "must be a valid rscale",
+            );
+        }
     }
     if (value.skip !== undefined && !SKIP.has(value.skip))
         fail(`${path}.skip`, "must be omit, backward, or forward");
@@ -71,14 +83,9 @@ export function validateRecurrenceRule(
             if (
                 !isNumberValue(entry) ||
                 !Number.isInteger(entry) ||
-                entry === 0 ||
-                entry < -31 ||
-                entry > 31
+                entry === 0
             ) {
-                fail(
-                    `${path}.byMonthDay[${i}]`,
-                    "must be an integer between -31 and 31, excluding 0",
-                );
+                fail(`${path}.byMonthDay[${i}]`, "must be a non-zero integer");
             }
         }
     }
@@ -87,11 +94,10 @@ export function validateRecurrenceRule(
             const entry = value.byMonth[i];
             if (!isStringValue(entry))
                 fail(`${path}.byMonth[${i}]`, "must be a string month");
-            const numeric = Number.parseInt(entry, 10);
-            if (!Number.isInteger(numeric) || numeric < 1 || numeric > 12) {
+            if (!MONTH_TOKEN.test(entry)) {
                 fail(
                     `${path}.byMonth[${i}]`,
-                    "must be a month number between 1 and 12",
+                    "must be an RFC 7529 month token",
                 );
             }
         }
@@ -102,14 +108,9 @@ export function validateRecurrenceRule(
             if (
                 !isNumberValue(entry) ||
                 !Number.isInteger(entry) ||
-                entry === 0 ||
-                entry < -366 ||
-                entry > 366
+                entry === 0
             ) {
-                fail(
-                    `${path}.byYearDay[${i}]`,
-                    "must be an integer between -366 and 366, excluding 0",
-                );
+                fail(`${path}.byYearDay[${i}]`, "must be a non-zero integer");
             }
         }
     }
@@ -119,14 +120,9 @@ export function validateRecurrenceRule(
             if (
                 !isNumberValue(entry) ||
                 !Number.isInteger(entry) ||
-                entry === 0 ||
-                entry < -53 ||
-                entry > 53
+                entry === 0
             ) {
-                fail(
-                    `${path}.byWeekNo[${i}]`,
-                    "must be an integer between -53 and 53, excluding 0",
-                );
+                fail(`${path}.byWeekNo[${i}]`, "must be a non-zero integer");
             }
         }
     }

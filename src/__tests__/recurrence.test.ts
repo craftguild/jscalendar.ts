@@ -559,6 +559,35 @@ describe("recurrence expansion", () => {
         expect(starts).toEqual(["2026-02-28T09:00:00", "2026-03-31T09:00:00"]);
     });
 
+    it("clamps large byMonthDay values to the month end with skip=backward", () => {
+        const event = new JsCal.Event({
+            title: "Day 99",
+            start: "2026-01-31T09:00:00",
+            recurrenceRules: [
+                {
+                    "@type": "RecurrenceRule",
+                    frequency: "monthly",
+                    byMonthDay: [99],
+                    skip: "backward",
+                    count: 3,
+                },
+            ],
+        });
+
+        const occ = collect(
+            JsCal.expandRecurrence([event], {
+                from: new Date("2026-01-01"),
+                to: new Date("2026-03-31"),
+            }),
+        );
+
+        expect(occ.map((o) => o.recurrenceId)).toEqual([
+            "2026-01-31T09:00:00",
+            "2026-02-28T09:00:00",
+            "2026-03-31T09:00:00",
+        ]);
+    });
+
     it("sets recurrenceIdTimeZone on instances", () => {
         const event = new JsCal.Event({
             title: "Weekly",
@@ -671,6 +700,32 @@ describe("recurrence expansion", () => {
 
         const starts = occ.map((o) => o.recurrenceId);
         expect(starts).toEqual(["2026-01-01T09:00:00"]);
+    });
+
+    it("handles negative byWeekNo at year end without spilling into next week-year", () => {
+        const event = new JsCal.Event({
+            title: "Last Week Monday",
+            start: "2018-12-24T09:00:00",
+            recurrenceRules: [
+                {
+                    "@type": "RecurrenceRule",
+                    frequency: "yearly",
+                    byWeekNo: [-1],
+                    byDay: [{ "@type": "NDay", day: "mo" }],
+                    count: 2,
+                },
+            ],
+        });
+
+        const occ = collect(
+            JsCal.expandRecurrence([event], {
+                from: new Date("2018-01-01"),
+                to: new Date("2019-12-31"),
+            }),
+        );
+
+        const starts = occ.map((o) => o.recurrenceId);
+        expect(starts).toEqual(["2018-12-24T09:00:00", "2019-12-23T09:00:00"]);
     });
 
     it("supports secondly frequency", () => {
@@ -994,7 +1049,7 @@ describe("recurrence expansion", () => {
         expect(occ.length).toBe(0);
     });
 
-    it("throws on unsupported rscale during expansion", () => {
+    it("throws on invalid rscale during expansion", () => {
         const event = new JsCal.Event(
             {
                 title: "Bad Rscale",
@@ -1003,7 +1058,7 @@ describe("recurrence expansion", () => {
                     {
                         "@type": "RecurrenceRule",
                         frequency: "daily",
-                        rscale: "hebrew",
+                        rscale: "not-a-calendar",
                     },
                 ],
             },
