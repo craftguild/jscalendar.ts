@@ -317,39 +317,33 @@ describe("validation internals", () => {
                 {
                     "@type": "RecurrenceRule",
                     frequency: "daily",
-                    byMonth: ["13"],
+                    byMonth: ["0"],
                 },
                 "rule",
             ),
-        ).toThrowError(
-            "rule.byMonth[0]: must be a month number between 1 and 12",
-        );
+        ).toThrowError("rule.byMonth[0]: must be an RFC 7529 month token");
 
         expect(() =>
             validateRecurrenceRule(
                 {
                     "@type": "RecurrenceRule",
                     frequency: "daily",
-                    byYearDay: [367],
+                    byYearDay: [0],
                 },
                 "rule",
             ),
-        ).toThrowError(
-            "rule.byYearDay[0]: must be an integer between -366 and 366, excluding 0",
-        );
+        ).toThrowError("rule.byYearDay[0]: must be a non-zero integer");
 
         expect(() =>
             validateRecurrenceRule(
                 {
                     "@type": "RecurrenceRule",
                     frequency: "daily",
-                    byWeekNo: [54],
+                    byWeekNo: [0],
                 },
                 "rule",
             ),
-        ).toThrowError(
-            "rule.byWeekNo[0]: must be an integer between -53 and 53, excluding 0",
-        );
+        ).toThrowError("rule.byWeekNo[0]: must be a non-zero integer");
 
         expect(() =>
             validateRecurrenceRule(

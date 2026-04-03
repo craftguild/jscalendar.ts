@@ -1,4 +1,5 @@
 import type { RecurrenceRule } from "../types.js";
+import { formatMonthToken } from "./month-tokens.js";
 import {
     FREQ_HOURLY,
     FREQ_MINUTELY,
@@ -7,8 +8,7 @@ import {
     FREQ_WEEKLY,
     FREQ_YEARLY,
 } from "./constants.js";
-import type { DateTime } from "./types.js";
-import { dayOfWeek } from "./date-utils.js";
+import type { CalendarBackend, DateTime } from "./types.js";
 
 /**
  * Normalize rule fields by copying arrays and filling defaults from the start date-time.
@@ -19,12 +19,13 @@ import { dayOfWeek } from "./date-utils.js";
 export function normalizeRule(
     rule: RecurrenceRule,
     start: DateTime,
+    backend: CalendarBackend,
 ): RecurrenceRule {
     const normalized: RecurrenceRule = {
         ...rule,
-        bySecond: rule.bySecond ? [...rule.bySecond] : undefined,
-        byMinute: rule.byMinute ? [...rule.byMinute] : undefined,
-        byHour: rule.byHour ? [...rule.byHour] : undefined,
+        bySecond: sortUnsigned(rule.bySecond),
+        byMinute: sortUnsigned(rule.byMinute),
+        byHour: sortUnsigned(rule.byHour),
         byDay: rule.byDay ? [...rule.byDay] : undefined,
         byMonthDay: rule.byMonthDay ? [...rule.byMonthDay] : undefined,
         byMonth: rule.byMonth ? [...rule.byMonth] : undefined,
@@ -59,7 +60,7 @@ export function normalizeRule(
         normalized.frequency === FREQ_WEEKLY &&
         (!normalized.byDay || normalized.byDay.length === 0)
     ) {
-        normalized.byDay = [{ "@type": "NDay", day: dayOfWeek(start) }];
+        normalized.byDay = [{ "@type": "NDay", day: backend.dayOfWeek(start) }];
     }
 
     if (
@@ -82,7 +83,7 @@ export function normalizeRule(
         const hasByDay = normalized.byDay && normalized.byDay.length > 0;
 
         if (!hasByMonth && !hasByWeekNo && (hasByMonthDay || !hasByDay)) {
-            normalized.byMonth = [start.month.toString()];
+            normalized.byMonth = [formatMonthToken(start.monthCode)];
         }
 
         if (!hasByMonthDay && !hasByWeekNo && !hasByDay) {
@@ -90,9 +91,20 @@ export function normalizeRule(
         }
 
         if (hasByWeekNo && !hasByMonthDay && !hasByDay) {
-            normalized.byDay = [{ "@type": "NDay", day: dayOfWeek(start) }];
+            normalized.byDay = [
+                { "@type": "NDay", day: backend.dayOfWeek(start) },
+            ];
         }
     }
 
     return normalized;
+}
+
+/**
+ * Copy and sort unsigned integer recurrence fields.
+ * @param values Unsigned integer values.
+ * @return Sorted copy or undefined.
+ */
+function sortUnsigned(values: number[] | undefined): number[] | undefined {
+    return values ? [...values].sort((left, right) => left - right) : undefined;
 }

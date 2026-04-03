@@ -1,9 +1,9 @@
 import type { RecurrenceRule } from "../types.js";
-import type { DateTime, DayOfWeek } from "./types.js";
-import { formatLocalDateTime } from "./date-utils.js";
+import type { CalendarBackend, DateTime, DayOfWeek } from "./types.js";
 import {
     filterDateCandidates,
     generateDateCandidates,
+    sortDateCandidates,
 } from "./rule-candidates.js";
 
 /**
@@ -17,21 +17,28 @@ import {
 export function generateDateTimes(
     periodStart: DateTime,
     rule: RecurrenceRule,
+    backend: CalendarBackend,
     firstDay: DayOfWeek,
     skip: string,
+    timeZone?: string | null,
 ): string[] {
     const dateCandidates = generateDateCandidates(
         periodStart,
         rule,
+        backend,
         firstDay,
         skip,
     );
-    const filteredDates = filterDateCandidates(
-        dateCandidates,
-        rule,
-        periodStart,
-        firstDay,
-        skip,
+    const filteredDates = sortDateCandidates(
+        filterDateCandidates(
+            dateCandidates,
+            rule,
+            periodStart,
+            backend,
+            firstDay,
+            skip,
+        ),
+        backend,
     );
 
     const hours =
@@ -52,15 +59,15 @@ export function generateDateTimes(
         for (const hour of hours) {
             for (const minute of minutes) {
                 for (const second of seconds) {
-                    const dt = formatLocalDateTime({
+                    const dt = {
                         year: date.year,
-                        month: date.month,
+                        monthCode: date.monthCode,
                         day: date.day,
                         hour,
                         minute,
                         second,
-                    });
-                    result.push(dt);
+                    };
+                    result.push(backend.toGregorianLocal(dt, timeZone));
                 }
             }
         }

@@ -19,18 +19,10 @@ export type RecurrencePageOptions = RecurrenceExpandOptions & {
 
 export type DayOfWeek = "mo" | "tu" | "we" | "th" | "fr" | "sa" | "su";
 
-export type DateTime = {
-    year: number;
-    month: number;
-    day: number;
-    hour: number;
-    minute: number;
-    second: number;
-};
-
-export type DateCandidate = {
-    year: number;
-    month: number;
-    day: number;
-    valid: boolean;
-};
+export type {
+    CalendarBackend,
+    CalendarDateCandidate as DateCandidate,
+    CalendarDateParts,
+    CalendarDateTimeParts as DateTime,
+    CalendarMonthCode,
+} from "./calendar/types.js";

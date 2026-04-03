@@ -1,12 +1,8 @@
 import type { RecurrenceRule, TimeZoneId } from "../types.js";
-import { RSCALE_GREGORIAN, SKIP_OMIT } from "./constants.js";
+import { SKIP_OMIT } from "./constants.js";
+import { createCalendarBackendOrThrow } from "./calendar/temporal-backend.js";
 import type { DayOfWeek } from "./types.js";
-import {
-    addInterval,
-    compareDate,
-    formatLocalDateTime,
-    parseLocalDateTime,
-} from "./date-utils.js";
+import { parseLocalDateTime } from "./date-utils.js";
 import { generateDateTimes } from "./rule-generate.js";
 import { normalizeRule } from "./rule-normalize.js";
 import { applyBySetPos } from "./rule-selectors.js";
@@ -33,11 +29,10 @@ export function expandRule(
     fromDate?: Date,
     toDate?: Date,
 ): string[] {
-    if (rule.rscale && rule.rscale !== RSCALE_GREGORIAN) {
-        throw new Error(`Unsupported rscale: ${rule.rscale}`);
-    }
-    const start = parseLocalDateTime(anchor);
-    const normalized = normalizeRule(rule, start);
+    parseLocalDateTime(anchor);
+    const backend = createCalendarBackendOrThrow(rule.rscale);
+    const start = backend.fromGregorianLocal(anchor, timeZone ?? null);
+    const normalized = normalizeRule(rule, start, backend);
     const interval = normalized.interval ?? 1;
     const until = normalized.until;
     const count = normalized.count ?? Infinity;
@@ -47,22 +42,30 @@ export function expandRule(
     const results: string[] = [];
     let generated = 0;
     let cursor = start;
-    const anchorValue = formatLocalDateTime(start);
+    const anchorValue = anchor;
+    const usesBySetPosition = Boolean(
+        normalized.bySetPosition && normalized.bySetPosition.length > 0,
+    );
 
     while (generated < count) {
-        const candidates = generateDateTimes(
+        const generatedCandidates = generateDateTimes(
             cursor,
             normalized,
+            backend,
             firstDay,
             skip,
-        ).sort();
+            timeZone ?? null,
+        );
+        const candidates = generatedCandidates;
         let filtered = candidates;
-        if (normalized.bySetPosition && normalized.bySetPosition.length > 0) {
-            filtered = applyBySetPos(filtered, normalized.bySetPosition);
+        if (usesBySetPosition && normalized.bySetPosition) {
+            filtered = applyBySetPos(candidates, normalized.bySetPosition);
         }
+        const isAnchorPeriod = backend.compareDate(cursor, start) === 0;
+        const cursorKey = backend.toGregorianLocal(cursor, timeZone ?? null);
 
         for (const dt of filtered) {
-            if (compareDate(cursor, start) === 0 && dt < anchorValue) {
+            if (isAnchorPeriod && dt < anchorValue) {
                 continue;
             }
             generated += 1;
@@ -73,12 +76,11 @@ export function expandRule(
             }
         }
 
-        if (until && cursor && formatLocalDateTime(cursor) > until) break;
+        if (until && cursorKey > until) break;
         if (generated >= count) break;
-        if (cursor && compareDate(cursor, parseLocalDateTime(toLocal)) > 0)
-            break;
+        if (cursorKey > toLocal) break;
 
-        cursor = addInterval(cursor, normalized.frequency, interval, firstDay);
+        cursor = backend.add(cursor, normalized.frequency, interval, firstDay);
     }
 
     return results;
