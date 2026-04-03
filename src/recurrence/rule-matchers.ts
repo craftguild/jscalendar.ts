@@ -8,6 +8,11 @@ import type {
     DayOfWeek,
 } from "./types.js";
 
+type MatcherCache = {
+    nthPeriodDates: Map<string, CalendarDateParts[]>;
+    weeksInYear: Map<string, number>;
+};
+
 /**
  * Check whether a candidate date matches BYMONTHDAY values.
  * @param date Candidate date.
@@ -59,9 +64,10 @@ export function matchesByWeekNo(
     byWeekNo: number[],
     backend: CalendarBackend,
     firstDay: DayOfWeek,
+    cache?: MatcherCache,
 ): boolean {
     const week = backend.weekNumber(date, firstDay);
-    const total = backend.weeksInYear(date.year, firstDay);
+    const total = getWeeksInYear(date.year, backend, firstDay, cache);
     for (const v of byWeekNo) {
         if (v > 0 && week === v) return true;
         if (v < 0 && week === total + v + 1) return true;
@@ -85,6 +91,7 @@ export function matchesByDay(
     periodStart: DateTime,
     backend: CalendarBackend,
     firstDay: DayOfWeek,
+    cache?: MatcherCache,
 ): boolean {
     const weekday = backend.dayOfWeek(date);
     for (const entry of byDay) {
@@ -101,6 +108,7 @@ export function matchesByDay(
             periodStart,
             backend,
             firstDay,
+            cache,
         ).filter((d) => backend.dayOfWeek(d) === entry.day);
         const index =
             entry.nthOfPeriod > 0
@@ -135,7 +143,14 @@ function listNthPeriodDates(
     periodStart: DateTime,
     backend: CalendarBackend,
     firstDay: DayOfWeek,
+    cache?: MatcherCache,
 ): CalendarDateParts[] {
+    const cacheKey = nthPeriodCacheKey(date, frequency);
+    const cached = cache?.nthPeriodDates.get(cacheKey);
+    if (cached) {
+        return cached;
+    }
+
     if (frequency === FREQ_YEARLY) {
         const result: CalendarDateParts[] = [];
         for (const monthCode of backend.monthsInYear(date.year)) {
@@ -152,6 +167,7 @@ function listNthPeriodDates(
                 });
             }
         }
+        cache?.nthPeriodDates.set(cacheKey, result);
         return result;
     }
     if (frequency === FREQ_MONTHLY) {
@@ -164,6 +180,7 @@ function listNthPeriodDates(
                 day,
             });
         }
+        cache?.nthPeriodDates.set(cacheKey, result);
         return result;
     }
 
@@ -177,5 +194,58 @@ function listNthPeriodDates(
         });
         cursor = backend.addDays(cursor, 1);
     }
+    cache?.nthPeriodDates.set(cacheKey, result);
     return result;
+}
+
+/**
+ * Build the cache key for nth-of-period date lists.
+ * @param date Candidate date.
+ * @param frequency Rule frequency.
+ * @return Stable cache key.
+ */
+function nthPeriodCacheKey(
+    date: DateCandidate,
+    frequency: RecurrenceRule["frequency"],
+): string {
+    if (frequency === FREQ_YEARLY) {
+        return `year:${date.year}`;
+    }
+    if (frequency === FREQ_MONTHLY) {
+        return `month:${date.year}:${date.monthCode.value}`;
+    }
+    return `week:${periodDateKey(date)}`;
+}
+
+/**
+ * Get the number of weeks in a year with memoization.
+ * @param year Calendar year.
+ * @param backend Calendar backend.
+ * @param firstDay First day of week.
+ * @param cache Optional matcher cache.
+ * @return Number of weeks in the year.
+ */
+function getWeeksInYear(
+    year: number,
+    backend: CalendarBackend,
+    firstDay: DayOfWeek,
+    cache?: MatcherCache,
+): number {
+    const key = `${year}:${firstDay}`;
+    const cached = cache?.weeksInYear.get(key);
+    if (cached !== undefined) {
+        return cached;
+    }
+    const value = backend.weeksInYear(year, firstDay);
+    cache?.weeksInYear.set(key, value);
+    return value;
+}
+
+/**
+ * Build a simple date key for weekly cache entries.
+ * @param date Candidate date.
+ * @return Stable cache key.
+ */
+function periodDateKey(date: DateCandidate): string {
+    return `${date.year}:${date.monthCode.value}:${date.day}`;
 }

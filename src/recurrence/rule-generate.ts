@@ -3,6 +3,7 @@ import type { CalendarBackend, DateTime, DayOfWeek } from "./types.js";
 import {
     filterDateCandidates,
     generateDateCandidates,
+    sortDateCandidates,
 } from "./rule-candidates.js";
 
 /**
@@ -28,13 +29,16 @@ export function generateDateTimes(
         firstDay,
         skip,
     );
-    const filteredDates = filterDateCandidates(
-        dateCandidates,
-        rule,
-        periodStart,
+    const filteredDates = sortDateCandidates(
+        filterDateCandidates(
+            dateCandidates,
+            rule,
+            periodStart,
+            backend,
+            firstDay,
+            skip,
+        ),
         backend,
-        firstDay,
-        skip,
     );
 
     const hours =

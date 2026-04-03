@@ -7,6 +7,47 @@ type RscaleDefinition = {
     calendarId: string;
 };
 
+export const SupportedRscaleInputs = [
+    RSCALE_GREGORIAN,
+    GREGORY,
+    "iso8601",
+    "hebrew",
+    "chinese",
+    "dangi",
+    "indian",
+    "persian",
+    "japanese",
+    "buddhist",
+    "roc",
+    "coptic",
+    "ethiopic",
+    "ethioaa",
+    "ethiopic-amete-alem",
+    "islamic",
+    "islamic-civil",
+    "islamic-tbla",
+    "islamic-umalqura",
+] as const;
+
+export const CanonicalRscales = [
+    RSCALE_GREGORIAN,
+    "hebrew",
+    "chinese",
+    "dangi",
+    "indian",
+    "persian",
+    "japanese",
+    "buddhist",
+    "roc",
+    "coptic",
+    "ethiopic",
+    "ethiopic-amete-alem",
+    "islamic",
+    "islamic-civil",
+    "islamic-tbla",
+    "islamic-umalqura",
+] as const;
+
 const RSCALE_DEFINITIONS = new Map<string, RscaleDefinition>([
     [RSCALE_GREGORIAN, { canonical: RSCALE_GREGORIAN, calendarId: GREGORY }],
     [GREGORY, { canonical: RSCALE_GREGORIAN, calendarId: GREGORY }],

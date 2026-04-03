@@ -19,10 +19,12 @@ import type {
     ZonedDateTime,
 } from "./temporal.js";
 import type {
+    CalendarBackendScopeCache,
     CalendarBackend,
     CalendarDateParts,
     CalendarDateTimeParts,
     CalendarMonthCode,
+    CalendarYearScopeCache,
 } from "./types.js";
 
 const DAY_INDEX = new Map<number, DayOfWeek>([
@@ -41,6 +43,10 @@ const START_HOUR = 0;
 const START_MINUTE = 0;
 const START_SECOND = 0;
 const ISO_CALENDAR = "iso8601";
+const BACKEND_CACHE = new Map<string, CalendarBackend>();
+const AVAILABLE_CALENDARS = new Set<string>();
+const UNAVAILABLE_CALENDARS = new Set<string>();
+const MONTH_CODE_CACHE = new Map<string, CalendarMonthCode>();
 
 /**
  * Create a Temporal-backed calendar strategy for a recurrence rule.
@@ -54,10 +60,16 @@ export function createCalendarBackendOrThrow(rscale?: string): CalendarBackend {
         definition.canonical,
         rscale,
     );
-    return new TemporalCalendarBackend(
+    const cached = BACKEND_CACHE.get(definition.canonical);
+    if (cached) {
+        return cached;
+    }
+    const backend = new TemporalCalendarBackend(
         definition.canonical,
         definition.calendarId,
     );
+    BACKEND_CACHE.set(definition.canonical, backend);
+    return backend;
 }
 
 /**
@@ -66,6 +78,13 @@ export function createCalendarBackendOrThrow(rscale?: string): CalendarBackend {
 class TemporalCalendarBackend implements CalendarBackend {
     readonly rscale: string;
     private readonly calendarId: string;
+    private readonly cache: CalendarBackendScopeCache = {
+        years: new Map<number, CalendarYearScopeCache>(),
+        fromGregorianLocal: new Map<string, CalendarDateTimeParts>(),
+        toGregorianLocal: new Map<string, string>(),
+        plainDates: new Map<string, PlainDate>(),
+        plainDateTimes: new Map<string, PlainDateTime>(),
+    };
 
     /**
      * Build a backend bound to a canonical RSCALE and Temporal calendar.
@@ -87,16 +106,27 @@ class TemporalCalendarBackend implements CalendarBackend {
         localDateTime: string,
         timeZone?: string | null,
     ): CalendarDateTimeParts {
+        const cacheKey = `${timeZone ?? ""}|${localDateTime}`;
+        const cached = this.cache.fromGregorianLocal.get(cacheKey);
+        if (cached) {
+            return cached;
+        }
         const plain = Temporal.PlainDateTime.from(localDateTime);
         if (timeZone) {
             const instant = plain.toZonedDateTime(timeZone).toInstant();
-            return fromZonedDateTime(
+            const converted = fromZonedDateTime(
                 instant
                     .toZonedDateTimeISO(timeZone)
                     .withCalendar(this.calendarId),
             );
+            this.cache.fromGregorianLocal.set(cacheKey, converted);
+            return converted;
         }
-        return fromPlainDateTime(plain.withCalendar(this.calendarId));
+        const converted = fromPlainDateTime(
+            plain.withCalendar(this.calendarId),
+        );
+        this.cache.fromGregorianLocal.set(cacheKey, converted);
+        return converted;
     }
 
     /**
@@ -109,6 +139,11 @@ class TemporalCalendarBackend implements CalendarBackend {
         value: CalendarDateTimeParts,
         timeZone?: string | null,
     ): string {
+        const cacheKey = `${timeZone ?? ""}|${dateTimeCacheKey(value)}`;
+        const cached = this.cache.toGregorianLocal.get(cacheKey);
+        if (cached) {
+            return cached;
+        }
         if (timeZone) {
             const zoned = Temporal.ZonedDateTime.from({
                 calendar: this.calendarId,
@@ -120,7 +155,9 @@ class TemporalCalendarBackend implements CalendarBackend {
                 minute: value.minute,
                 second: value.second,
             }).withCalendar(ISO_CALENDAR);
-            return formatIsoLike(zoned);
+            const formatted = formatIsoLike(zoned);
+            this.cache.toGregorianLocal.set(cacheKey, formatted);
+            return formatted;
         }
         const plain = Temporal.PlainDateTime.from({
             calendar: this.calendarId,
@@ -131,7 +168,9 @@ class TemporalCalendarBackend implements CalendarBackend {
             minute: value.minute,
             second: value.second,
         }).withCalendar(ISO_CALENDAR);
-        return formatIsoLike(plain);
+        const formatted = formatIsoLike(plain);
+        this.cache.toGregorianLocal.set(cacheKey, formatted);
+        return formatted;
     }
 
     /**
@@ -221,6 +260,11 @@ class TemporalCalendarBackend implements CalendarBackend {
      * @return Month codes in order.
      */
     monthsInYear(year: number): CalendarMonthCode[] {
+        const yearCache = this.yearScope(year);
+        const cached = yearCache.monthsInYear;
+        if (cached) {
+            return cached;
+        }
         const months: CalendarMonthCode[] = [];
         let cursor = Temporal.PlainDate.from({
             calendar: this.calendarId,
@@ -236,6 +280,7 @@ class TemporalCalendarBackend implements CalendarBackend {
             }
             cursor = cursor.add({ months: 1 });
         }
+        yearCache.monthsInYear = months;
         return months;
     }
 
@@ -249,11 +294,18 @@ class TemporalCalendarBackend implements CalendarBackend {
         year: number,
         token: CalendarMonthCode,
     ): CalendarMonthCode | undefined {
-        return this.monthsInYear(year).find(
+        const yearCache = this.yearScope(year);
+        const cacheKey = token.value;
+        if (yearCache.monthTokenResolution.has(cacheKey)) {
+            return yearCache.monthTokenResolution.get(cacheKey) ?? undefined;
+        }
+        const resolved = this.monthsInYear(year).find(
             (month) =>
                 month.ordinal === token.ordinal &&
                 month.isLeap === token.isLeap,
         );
+        yearCache.monthTokenResolution.set(cacheKey, resolved ?? null);
+        return resolved;
     }
 
     /**
@@ -298,7 +350,13 @@ class TemporalCalendarBackend implements CalendarBackend {
      * @return Number of days.
      */
     daysInMonth(value: CalendarDateParts): number {
-        return this.toPlainDate(value).daysInMonth;
+        const monthCache = this.monthScope(value.year, value.monthCode.value);
+        if (monthCache.daysInMonth !== undefined) {
+            return monthCache.daysInMonth;
+        }
+        const days = this.toPlainDate(value).daysInMonth;
+        monthCache.daysInMonth = days;
+        return days;
     }
 
     /**
@@ -307,12 +365,18 @@ class TemporalCalendarBackend implements CalendarBackend {
      * @return Number of days.
      */
     daysInYear(year: number): number {
-        return Temporal.PlainDate.from({
+        const yearCache = this.yearScope(year);
+        if (yearCache.daysInYear !== undefined) {
+            return yearCache.daysInYear;
+        }
+        const days = Temporal.PlainDate.from({
             calendar: this.calendarId,
             year,
             month: START_DAY,
             day: START_DAY,
         }).daysInYear;
+        yearCache.daysInYear = days;
+        return days;
     }
 
     /**
@@ -321,7 +385,14 @@ class TemporalCalendarBackend implements CalendarBackend {
      * @return Two-letter weekday code.
      */
     dayOfWeek(value: CalendarDateParts): DayOfWeek {
-        return DAY_INDEX.get(this.toPlainDate(value).dayOfWeek) ?? "su";
+        const dateCache = this.dateScope(value);
+        if (dateCache.dayOfWeek) {
+            return dateCache.dayOfWeek;
+        }
+        const dayOfWeek =
+            DAY_INDEX.get(this.toPlainDate(value).dayOfWeek) ?? "su";
+        dateCache.dayOfWeek = dayOfWeek;
+        return dayOfWeek;
     }
 
     /**
@@ -330,7 +401,13 @@ class TemporalCalendarBackend implements CalendarBackend {
      * @return Day of year.
      */
     dayOfYear(value: CalendarDateParts): number {
-        return this.toPlainDate(value).dayOfYear;
+        const dateCache = this.dateScope(value);
+        if (dateCache.dayOfYear !== undefined) {
+            return dateCache.dayOfYear;
+        }
+        const dayOfYear = this.toPlainDate(value).dayOfYear;
+        dateCache.dayOfYear = dayOfYear;
+        return dayOfYear;
     }
 
     /**
@@ -359,9 +436,16 @@ class TemporalCalendarBackend implements CalendarBackend {
      * @return Total weeks in the year.
      */
     weeksInYear(year: number, firstDay: DayOfWeek): number {
+        const yearCache = this.yearScope(year);
+        const cached = yearCache.weeksInYearByFirstDay.get(firstDay);
+        if (cached !== undefined) {
+            return cached;
+        }
         const start = this.week1Start(year, firstDay);
         const next = this.week1Start(year + 1, firstDay);
-        return this.daysBetween(start, next) / 7;
+        const weeks = this.daysBetween(start, next) / 7;
+        yearCache.weeksInYearByFirstDay.set(firstDay, weeks);
+        return weeks;
     }
 
     /**
@@ -370,12 +454,19 @@ class TemporalCalendarBackend implements CalendarBackend {
      * @return Temporal PlainDate value.
      */
     private toPlainDate(value: CalendarDateParts): PlainDate {
-        return Temporal.PlainDate.from({
+        const cacheKey = dateCacheKey(value);
+        const cached = this.cache.plainDates.get(cacheKey);
+        if (cached) {
+            return cached;
+        }
+        const plainDate = Temporal.PlainDate.from({
             calendar: this.calendarId,
             year: value.year,
             monthCode: value.monthCode.value,
             day: value.day,
         });
+        this.cache.plainDates.set(cacheKey, plainDate);
+        return plainDate;
     }
 
     /**
@@ -384,7 +475,12 @@ class TemporalCalendarBackend implements CalendarBackend {
      * @return Temporal PlainDateTime value.
      */
     private toPlainDateTime(value: CalendarDateTimeParts): PlainDateTime {
-        return Temporal.PlainDateTime.from({
+        const cacheKey = dateTimeCacheKey(value);
+        const cached = this.cache.plainDateTimes.get(cacheKey);
+        if (cached) {
+            return cached;
+        }
+        const plainDateTime = Temporal.PlainDateTime.from({
             calendar: this.calendarId,
             year: value.year,
             monthCode: value.monthCode.value,
@@ -393,6 +489,8 @@ class TemporalCalendarBackend implements CalendarBackend {
             minute: value.minute,
             second: value.second,
         });
+        this.cache.plainDateTimes.set(cacheKey, plainDateTime);
+        return plainDateTime;
     }
 
     /**
@@ -465,7 +563,12 @@ class TemporalCalendarBackend implements CalendarBackend {
      * @param firstDay First day of week.
      * @return Start date of week 1.
      */
-    private week1Start(year: number, firstDay: DayOfWeek): CalendarDateParts {
+    week1Start(year: number, firstDay: DayOfWeek): CalendarDateParts {
+        const yearCache = this.yearScope(year);
+        const cached = yearCache.week1StartByFirstDay.get(firstDay);
+        if (cached) {
+            return cached;
+        }
         const yearStart: CalendarDateTimeParts = {
             year,
             monthCode: this.monthsInYear(year)[0] ?? buildMonthCode("M01"),
@@ -479,11 +582,77 @@ class TemporalCalendarBackend implements CalendarBackend {
         const daysInFirstWeek = 7 - daysBeforeYear;
         const week1Start =
             daysInFirstWeek >= 4 ? weekStart : this.addDays(weekStart, 7);
-        return {
+        const resolved = {
             year: week1Start.year,
             monthCode: week1Start.monthCode,
             day: week1Start.day,
         };
+        yearCache.week1StartByFirstDay.set(firstDay, resolved);
+        return resolved;
+    }
+
+    /**
+     * Resolve or initialize the year-scoped backend cache.
+     * @param year Calendar year.
+     * @return Mutable year-scoped cache bucket.
+     */
+    private yearScope(year: number): CalendarYearScopeCache {
+        const cached = this.cache.years.get(year);
+        if (cached) {
+            return cached;
+        }
+        const created: CalendarYearScopeCache = {
+            week1StartByFirstDay: new Map<DayOfWeek, CalendarDateParts>(),
+            weeksInYearByFirstDay: new Map<DayOfWeek, number>(),
+            monthTokenResolution: new Map<string, CalendarMonthCode | null>(),
+            months: new Map<string, { daysInMonth?: number }>(),
+            dates: new Map<
+                string,
+                { dayOfWeek?: DayOfWeek; dayOfYear?: number }
+            >(),
+        };
+        this.cache.years.set(year, created);
+        return created;
+    }
+
+    /**
+     * Resolve or initialize the month-scoped cache for a year.
+     * @param year Calendar year.
+     * @param monthCode Calendar month code.
+     * @return Mutable month-scoped cache bucket.
+     */
+    private monthScope(
+        year: number,
+        monthCode: string,
+    ): { daysInMonth?: number } {
+        const yearCache = this.yearScope(year);
+        const cached = yearCache.months.get(monthCode);
+        if (cached) {
+            return cached;
+        }
+        const created = { daysInMonth: undefined };
+        yearCache.months.set(monthCode, created);
+        return created;
+    }
+
+    /**
+     * Resolve or initialize the date-scoped cache for a year.
+     * @param value Calendar date parts.
+     * @return Mutable date-scoped cache bucket.
+     */
+    private dateScope(value: CalendarDateParts): {
+        dayOfWeek?: DayOfWeek;
+        dayOfYear?: number;
+    } {
+        const yearCache = this.yearScope(value.year);
+        const cacheKey = `${value.monthCode.value}:${value.day}`;
+        const cached = yearCache.dates.get(cacheKey);
+        if (cached) {
+            return cached;
+        }
+        const created = { dayOfWeek: undefined, dayOfYear: undefined };
+        yearCache.dates.set(cacheKey, created);
+        return created;
     }
 }
 
@@ -499,6 +668,15 @@ function ensureCalendarAvailable(
     canonical: string,
     input?: string,
 ): void {
+    if (AVAILABLE_CALENDARS.has(calendarId)) {
+        return;
+    }
+    if (UNAVAILABLE_CALENDARS.has(calendarId)) {
+        const value = input ?? canonical;
+        throw new Error(
+            `Unsupported rscale: ${value} (calendar backend is not available in this runtime)`,
+        );
+    }
     try {
         Temporal.PlainDate.from({
             calendar: calendarId,
@@ -506,7 +684,9 @@ function ensureCalendarAvailable(
             month: START_DAY,
             day: START_DAY,
         });
+        AVAILABLE_CALENDARS.add(calendarId);
     } catch {
+        UNAVAILABLE_CALENDARS.add(calendarId);
         const value = input ?? canonical;
         throw new Error(
             `Unsupported rscale: ${value} (calendar backend is not available in this runtime)`,
@@ -520,15 +700,21 @@ function ensureCalendarAvailable(
  * @return Parsed month metadata.
  */
 function buildMonthCode(monthCode: string): CalendarMonthCode {
+    const cached = MONTH_CODE_CACHE.get(monthCode);
+    if (cached) {
+        return cached;
+    }
     const match = /^M(\d+)(L)?$/i.exec(monthCode);
     if (!match) {
         throw new Error(`Unsupported Temporal monthCode: ${monthCode}`);
     }
-    return {
+    const resolved = {
         value: `M${pad(Number(match[1]), 2)}${match[2] ? "L" : ""}`,
         ordinal: Number(match[1]),
         isLeap: match[2] === "L",
     };
+    MONTH_CODE_CACHE.set(monthCode, resolved);
+    return resolved;
 }
 
 /**
@@ -589,4 +775,12 @@ function fromZonedDateTime(value: ZonedDateTime): CalendarDateTimeParts {
  */
 function formatIsoLike(value: PlainDateTime | ZonedDateTime): string {
     return `${pad(value.year, 4)}-${pad(value.month, 2)}-${pad(value.day, 2)}T${pad(value.hour, 2)}:${pad(value.minute, 2)}:${pad(value.second, 2)}`;
+}
+
+function dateCacheKey(value: CalendarDateParts): string {
+    return `${value.year}:${value.monthCode.value}:${value.day}`;
+}
+
+function dateTimeCacheKey(value: CalendarDateTimeParts): string {
+    return `${dateCacheKey(value)}:${value.hour}:${value.minute}:${value.second}`;
 }

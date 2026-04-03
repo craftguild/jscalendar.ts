@@ -43,23 +43,29 @@ export function expandRule(
     let generated = 0;
     let cursor = start;
     const anchorValue = anchor;
+    const usesBySetPosition = Boolean(
+        normalized.bySetPosition && normalized.bySetPosition.length > 0,
+    );
 
     while (generated < count) {
-        const candidates = generateDateTimes(
+        const generatedCandidates = generateDateTimes(
             cursor,
             normalized,
             backend,
             firstDay,
             skip,
             timeZone ?? null,
-        ).sort();
+        );
+        const candidates = generatedCandidates;
         let filtered = candidates;
-        if (normalized.bySetPosition && normalized.bySetPosition.length > 0) {
-            filtered = applyBySetPos(filtered, normalized.bySetPosition);
+        if (usesBySetPosition && normalized.bySetPosition) {
+            filtered = applyBySetPos(candidates, normalized.bySetPosition);
         }
+        const isAnchorPeriod = backend.compareDate(cursor, start) === 0;
+        const cursorKey = backend.toGregorianLocal(cursor, timeZone ?? null);
 
         for (const dt of filtered) {
-            if (backend.compareDate(cursor, start) === 0 && dt < anchorValue) {
+            if (isAnchorPeriod && dt < anchorValue) {
                 continue;
             }
             generated += 1;
@@ -70,10 +76,8 @@ export function expandRule(
             }
         }
 
-        if (until && backend.toGregorianLocal(cursor, timeZone ?? null) > until)
-            break;
+        if (until && cursorKey > until) break;
         if (generated >= count) break;
-        const cursorKey = backend.toGregorianLocal(cursor, timeZone ?? null);
         if (cursorKey > toLocal) break;
 
         cursor = backend.add(cursor, normalized.frequency, interval, firstDay);

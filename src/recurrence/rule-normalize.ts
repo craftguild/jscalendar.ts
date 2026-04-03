@@ -23,9 +23,9 @@ export function normalizeRule(
 ): RecurrenceRule {
     const normalized: RecurrenceRule = {
         ...rule,
-        bySecond: rule.bySecond ? [...rule.bySecond] : undefined,
-        byMinute: rule.byMinute ? [...rule.byMinute] : undefined,
-        byHour: rule.byHour ? [...rule.byHour] : undefined,
+        bySecond: sortUnsigned(rule.bySecond),
+        byMinute: sortUnsigned(rule.byMinute),
+        byHour: sortUnsigned(rule.byHour),
         byDay: rule.byDay ? [...rule.byDay] : undefined,
         byMonthDay: rule.byMonthDay ? [...rule.byMonthDay] : undefined,
         byMonth: rule.byMonth ? [...rule.byMonth] : undefined,
@@ -98,4 +98,13 @@ export function normalizeRule(
     }
 
     return normalized;
+}
+
+/**
+ * Copy and sort unsigned integer recurrence fields.
+ * @param values Unsigned integer values.
+ * @return Sorted copy or undefined.
+ */
+function sortUnsigned(values: number[] | undefined): number[] | undefined {
+    return values ? [...values].sort((left, right) => left - right) : undefined;
 }

@@ -840,6 +840,104 @@ describe("recurrence expansion", () => {
         expect(starts).toEqual(["2026-03-01T09:00:00", "2027-03-01T09:00:00"]);
     });
 
+    it("keeps candidate order stable before count is applied", () => {
+        const event = new JsCal.Event({
+            title: "Ordered Month Days",
+            start: "2026-01-15T09:00:00",
+            recurrenceRules: [
+                {
+                    "@type": "RecurrenceRule",
+                    frequency: "monthly",
+                    byMonthDay: [28, 1],
+                    count: 3,
+                },
+            ],
+        });
+
+        const occ = collect(
+            JsCal.expandRecurrence(
+                [event],
+                {
+                    from: new Date("2026-01-01"),
+                    to: new Date("2026-02-28"),
+                },
+                { includeAnchor: false },
+            ),
+        );
+
+        const starts = occ.map((o) => o.recurrenceId);
+        expect(starts).toEqual([
+            "2026-01-28T09:00:00",
+            "2026-02-01T09:00:00",
+            "2026-02-28T09:00:00",
+        ]);
+    });
+
+    it("applies byMonth filters to weekly candidates using each candidate year", () => {
+        const event = new JsCal.Event({
+            title: "Weekly Year Boundary",
+            start: "2026-12-25T09:00:00",
+            recurrenceRules: [
+                {
+                    "@type": "RecurrenceRule",
+                    frequency: "weekly",
+                    byDay: [{ "@type": "NDay", day: "fr" }],
+                    byMonth: ["1"],
+                    count: 3,
+                },
+            ],
+        });
+
+        const occ = collect(
+            JsCal.expandRecurrence(
+                [event],
+                {
+                    from: new Date("2026-12-01"),
+                    to: new Date("2027-01-31"),
+                },
+                { includeAnchor: false },
+            ),
+        );
+
+        const starts = occ.map((o) => o.recurrenceId);
+        expect(starts).toEqual([
+            "2027-01-01T09:00:00",
+            "2027-01-08T09:00:00",
+            "2027-01-15T09:00:00",
+        ]);
+    });
+
+    it("keeps byWeekNo candidates available for later filters when byDay is omitted", () => {
+        const event = new JsCal.Event({
+            title: "Week One Month Day",
+            start: "2026-01-04T09:00:00",
+            recurrenceRules: [
+                {
+                    "@type": "RecurrenceRule",
+                    frequency: "yearly",
+                    byWeekNo: [1],
+                    byMonthDay: [4],
+                    count: 4,
+                },
+            ],
+        });
+
+        const occ = collect(
+            JsCal.expandRecurrence([event], {
+                from: new Date("2026-01-01"),
+                to: new Date("2029-12-31"),
+            }),
+        );
+
+        const starts = occ.map((o) => o.recurrenceId);
+        expect(starts).toEqual([
+            "2026-01-04T09:00:00",
+            "2027-01-04T09:00:00",
+            "2028-01-04T09:00:00",
+            "2029-01-04T09:00:00",
+        ]);
+    });
+
     it("converts range dates into event time zone", () => {
         const event = new JsCal.Event({
             title: "TZ Range",

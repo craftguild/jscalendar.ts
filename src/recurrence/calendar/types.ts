@@ -1,5 +1,6 @@
 import type { RecurrenceRule } from "../../types.js";
 import type { DayOfWeek } from "../types.js";
+import type { PlainDate, PlainDateTime } from "./temporal.js";
 
 /**
  * Calendar month information used by recurrence internals.
@@ -33,6 +34,45 @@ export type CalendarDateTimeParts = CalendarDateParts & {
  */
 export type CalendarDateCandidate = CalendarDateParts & {
     valid: boolean;
+};
+
+/**
+ * Per-date cached values for a specific calendar year.
+ */
+export type CalendarDateScopeCache = {
+    dayOfWeek?: DayOfWeek;
+    dayOfYear?: number;
+};
+
+/**
+ * Per-month cached values for a specific calendar year.
+ */
+export type CalendarMonthScopeCache = {
+    daysInMonth?: number;
+};
+
+/**
+ * Year-scoped lazy cache for calendar backend computations.
+ */
+export type CalendarYearScopeCache = {
+    monthsInYear?: CalendarMonthCode[];
+    daysInYear?: number;
+    week1StartByFirstDay: Map<DayOfWeek, CalendarDateParts>;
+    weeksInYearByFirstDay: Map<DayOfWeek, number>;
+    monthTokenResolution: Map<string, CalendarMonthCode | null>;
+    months: Map<string, CalendarMonthScopeCache>;
+    dates: Map<string, CalendarDateScopeCache>;
+};
+
+/**
+ * Backend-scoped lazy cache shared across repeated calendar operations.
+ */
+export type CalendarBackendScopeCache = {
+    years: Map<number, CalendarYearScopeCache>;
+    fromGregorianLocal: Map<string, CalendarDateTimeParts>;
+    toGregorianLocal: Map<string, string>;
+    plainDates: Map<string, PlainDate>;
+    plainDateTimes: Map<string, PlainDateTime>;
 };
 
 /**
@@ -179,4 +219,12 @@ export interface CalendarBackend {
      * @return Total weeks in the year.
      */
     weeksInYear(year: number, firstDay: DayOfWeek): number;
+
+    /**
+     * Get the start date of week 1 for a calendar year.
+     * @param year Calendar year.
+     * @param firstDay First day of week for calculations.
+     * @return Start date of week 1.
+     */
+    week1Start(year: number, firstDay: DayOfWeek): CalendarDateParts;
 }
