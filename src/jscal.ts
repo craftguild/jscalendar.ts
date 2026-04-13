@@ -1,4 +1,5 @@
 import type { JSCalendarObject } from "./types.js";
+import { diff } from "./diff.js";
 import { toICal } from "./ical.js";
 import { expandRecurrence, expandRecurrencePaged } from "./recurrence.js";
 import {
@@ -75,6 +76,7 @@ export const JsCal = {
     duration: Duration,
     timeZone: resolveTimeZone,
     timeZones: TimeZones,
+    diff,
     applyPatch,
     Participant: buildParticipant,
     Location: buildLocation,

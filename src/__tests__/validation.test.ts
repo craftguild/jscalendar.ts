@@ -52,7 +52,34 @@ describe("validation", () => {
 
         expect(event.get("start")).toBe("2026-02-01T10:00:00Z");
 
-        event.patch({ start: "2026-02-01T10:00:00Z" }, { validate: false });
+        const patched = event.patch(
+            { start: "2026-02-01T10:00:00Z" },
+            { validate: false },
+        );
+
+        expect(patched.get("start")).toBe("2026-02-01T10:00:00Z");
+    });
+
+    it("does not mutate original when post-patch validation fails", () => {
+        const event = new JsCal.Event({
+            title: "Before",
+            start: "2026-02-01T10:00:00",
+        });
+
+        const beforeTitle = event.get("title");
+        const beforeStart = event.get("start");
+        const beforeSequence = event.get("sequence");
+
+        expect(() =>
+            event.patch({
+                title: "Temp",
+                start: "2026-02-01T10:00:00Z",
+            }),
+        ).toThrowError("object.start: must not include time zone offset");
+
+        expect(event.get("title")).toBe(beforeTitle);
+        expect(event.get("start")).toBe(beforeStart);
+        expect(event.get("sequence")).toBe(beforeSequence);
     });
 
     it("throws ValidationError with path and message", () => {
@@ -145,7 +172,9 @@ describe("validation", () => {
                         },
                     },
                 }),
-        ).toThrowError("object.participants.p1.roles.attendee: must be true");
+        ).toThrowError(
+            "object.participants.p1.roles.attendee: Invalid input: expected true",
+        );
     });
 
     it("rejects participants without roles", () => {
@@ -160,7 +189,9 @@ describe("validation", () => {
                         } as unknown as import("../types.js").Participant,
                     },
                 }),
-        ).toThrowError("object.participants.p1.roles: is required");
+        ).toThrowError(
+            "object.participants.p1.roles: Invalid input: expected record, received undefined",
+        );
     });
 
     it("rejects participants with empty roles", () => {
@@ -174,6 +205,56 @@ describe("validation", () => {
                 }),
         ).toThrowError(
             "object.participants.p1.roles: must include at least one role",
+        );
+    });
+
+    it("rejects non-standard participant roles without vendor prefix", () => {
+        expect(
+            () =>
+                new JsCal.Event({
+                    start: "2026-02-01T10:00:00",
+                    participants: {
+                        p1: {
+                            "@type": "Participant",
+                            roles: { xxxx: true },
+                        },
+                    },
+                }),
+        ).toThrowError(
+            "object.participants.p1.roles.xxxx: must be a standard participant role or vendor-specific value",
+        );
+    });
+
+    it("accepts vendor-specific participant roles", () => {
+        const event = new JsCal.Event({
+            start: "2026-02-01T10:00:00",
+            participants: {
+                p1: {
+                    "@type": "Participant",
+                    roles: { "calendar.example.co.jp:custom-role": true },
+                },
+            },
+        });
+
+        expect(event.get("participants")?.p1?.roles).toEqual({
+            "calendar.example.co.jp:custom-role": true,
+        });
+    });
+
+    it("rejects malformed vendor-specific participant roles", () => {
+        expect(
+            () =>
+                new JsCal.Event({
+                    start: "2026-02-01T10:00:00",
+                    participants: {
+                        p1: {
+                            "@type": "Participant",
+                            roles: { "example..com:custom-role": true },
+                        },
+                    },
+                }),
+        ).toThrowError(
+            "object.participants.p1.roles.example..com:custom-role: must be a standard participant role or vendor-specific value",
         );
     });
 

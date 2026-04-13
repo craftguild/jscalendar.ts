@@ -11,18 +11,18 @@ export type SignedDuration = string;
 
 export type BooleanMap = Record<string, true>;
 export type JsonPrimitive = string | number | boolean | null;
-export type JsonValue =
-    | JsonPrimitive
-    | JsonValue[]
-    | { [key: string]: JsonValue };
-export type PatchValue = JsonValue | null;
+export type JsonValue = JsonPrimitive | JsonValue[] | JsonObject;
+export interface JsonObject {
+    [key: string]: JsonValue | undefined;
+}
+export type PatchValue = JsonValue | object;
 export interface PatchObject {
-    [key: string]: PatchValue;
+    [key: string]: PatchValue | undefined;
 }
 
 type PatchFields<T> = {
     [K in keyof Omit<T, "@type">]?: T[K] | null;
-};
+} & PatchObject;
 
 type PatchTag<TTag extends string> = { __patchType?: TTag };
 

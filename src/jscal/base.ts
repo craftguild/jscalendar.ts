@@ -1,13 +1,29 @@
-import type { JSCalendarObject, PatchLike } from "../types.js";
+import type {
+    EventPatch,
+    GroupPatch,
+    JSCalendarObject,
+    PatchLike,
+    TaskPatch,
+} from "../types.js";
 import { applyPatch } from "../patch.js";
 import { deepClone, isNumberValue, nowUtc } from "../utils.js";
-import { validateJsCalendarObject } from "../validate.js";
+import { assertJsCalendarObject } from "../validate/asserts.js";
+import { fail } from "../validate/error.js";
+import { validateWithSchema } from "../validate/common.js";
+import { jsCalendarObjectSchema } from "../validate/schemas.js";
 import type { UpdateOptions } from "./types.js";
+
+type PatchFor<T extends JSCalendarObject> = T extends { "@type": "Event" }
+    ? EventPatch
+    : T extends { "@type": "Task" }
+      ? TaskPatch
+      : T extends { "@type": "Group" }
+        ? GroupPatch
+        : PatchLike;
 
 export abstract class Base<
     T extends JSCalendarObject,
-    TPatch extends PatchLike,
-    TSelf extends Base<T, TPatch, TSelf>,
+    TSelf extends Base<T, TSelf>,
 > {
     data: T;
 
@@ -66,17 +82,19 @@ export abstract class Base<
     }
 
     /**
-     * Apply a PatchObject and touch updated/sequence metadata.
-     * @param patch Patch to apply.
+     * Apply a JSCalendar PatchObject and touch updated/sequence metadata.
+     * @param patch PatchObject to apply.
      * @param options Update options.
      * @return New instance with applied patch.
      */
-    patch(patch: TPatch, options: UpdateOptions = {}): TSelf {
+    patch(patch: PatchFor<T>, options: UpdateOptions = {}): TSelf {
         const next = applyPatch(this.data, patch);
+        assertJsCalendarObject(next);
+        this.assertSameType(next);
         if (options.validate !== false) {
-            validateJsCalendarObject(next);
+            validateWithSchema(jsCalendarObjectSchema, next);
         }
-        const touched = this.touchFromPatch(next, patch, options);
+        const touched = this.touchFromPatch(next, options);
         return this.wrap(touched);
     }
 
@@ -101,16 +119,12 @@ export abstract class Base<
     }
 
     /**
-     * Update updated/sequence metadata for PatchObject changes.
-     * @param patch Patch applied to the object.
+     * Update updated/sequence metadata after patch.
+     * @param data Patched data.
      * @param options Update options.
      * @return Updated instance.
      */
-    protected touchFromPatch(
-        data: T,
-        patch: PatchLike,
-        options: UpdateOptions = {},
-    ): T {
+    protected touchFromPatch(data: T, options: UpdateOptions = {}): T {
         if (options.touch === false) return data;
         const now = options.now ?? nowUtc;
         data.updated = now();
@@ -118,5 +132,16 @@ export abstract class Base<
         const current = isNumberValue(data.sequence) ? data.sequence : 0;
         data.sequence = current + 1;
         return data;
+    }
+
+    /**
+     * Assert patched object type is unchanged.
+     * @param value Patched JSCalendar object.
+     * @return Nothing.
+     */
+    protected assertSameType(value: JSCalendarObject): asserts value is T {
+        if (value["@type"] !== this.data["@type"]) {
+            fail('object["@type"]', `must remain ${this.data["@type"]}`);
+        }
     }
 }

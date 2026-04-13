@@ -14,7 +14,7 @@ Primary object types are **Event**, **Task**, and **Group**. A **Group**
 acts as a container when you want to bundle multiple objects. The API is
 intentionally small but opinionated: constructors normalize required
 fields, validation is strict by default, and `patch` applies RFC 8984
-PatchObject semantics.
+PatchObject updates, then validates the result as a JSCalendar object.
 
 For developer experience, the library offers builder helpers that fill
 `@type` fields and validate nested structures (participants, locations,
@@ -260,17 +260,19 @@ const updated = event.patch({ title: "Live" });
 
 ## Patch Usage
 
-Patch helpers return new instances and keep metadata such as
-`updated` and `sequence` consistent. Use `patch` for RFC 8984 PatchObject
-semantics. You can set raw values directly, or use helper methods if you
-prefer validated, type-safe inputs.
+Patch helpers return new instances and keep metadata such as `updated` and
+`sequence` consistent. `patch` applies RFC 8984 PatchObject updates.
+Patched results are validated as RFC 8984 JSCalendar objects by default.
+
+Basic replacement:
 
 ```ts
 const patchedEvent = event.patch({ title: "Updated title" });
+
 const patchedAgain = patchedEvent.patch({ title: "Patched title" });
 ```
 
-You can also patch nested maps by replacing the full map in one call:
+Adding nested maps with raw values:
 
 ```ts
 const withParticipants = event.patch({
@@ -284,38 +286,43 @@ const withParticipants = event.patch({
 });
 ```
 
-Two common patterns for nested patches:
-
-1. Set raw values directly
+You can use builder helpers for nested values as well:
 
 ```ts
-const withLocations = event.patch({
-    locations: {
-        l1: { "@type": "Location", name: "Room A" },
-    },
-});
-```
-
-2. Use helpers to build or merge map values
-
-```ts
-const withLocations = event.patch({
-    locations: JsCal.locations([
-        { id: "l1", value: JsCal.Location({ name: "Room A" }) },
-        { value: JsCal.Location({ name: "Room B" }) },
+const withParticipants = event.patch({
+    participants: JsCal.participants([
+        {
+            id: "p1",
+            value: JsCal.Participant({
+                roles: { attendee: true },
+                email: "a@example.com",
+            }),
+        },
     ]),
 });
 ```
 
-To merge into an existing map, pass the current map as the second argument:
+You can patch nested fields directly with PatchObject paths. The leading
+slash is optional for RFC 8984 PatchObject keys:
 
 ```ts
-const withLocations = event.patch({
-    locations: JsCal.locations(
-        [{ value: JsCal.Location({ name: "Room C" }) }],
-        event.data.locations,
-    ),
+const updatedEmail = withParticipants.patch({
+    "participants/p1/email": "b@example.com",
 });
+```
+
+Removing a value uses `null`:
+
+```ts
+const withoutDescription = event.patch({ description: null });
+```
+
+You can derive a PatchObject from two JSCalendar objects and apply it
+directly:
+
+```ts
+const patch = JsCal.diff(beforeEvent, afterEvent);
+const updated = beforeEvent.patch(patch);
 ```
 
 ## Date Inputs and Time Zones

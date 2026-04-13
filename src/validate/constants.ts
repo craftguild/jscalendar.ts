@@ -33,5 +33,15 @@ export const RECURRENCE_FREQUENCY = new Set([
     "minutely",
     "secondly",
 ]);
+export const PARTICIPANT_ROLE = new Set([
+    "owner",
+    "attendee",
+    "optional",
+    "informational",
+    "chair",
+    "contact",
+]);
 export const SKIP = new Set(["omit", "backward", "forward"]);
 export const ID_PATTERN = /^[A-Za-z0-9_-]+$/;
+export const VENDOR_SPECIFIC_VALUE =
+    /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)+:.+$/;
