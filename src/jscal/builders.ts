@@ -7,7 +7,6 @@ import type {
     Location,
     NDay,
     OffsetTrigger,
-    PatchObject,
     Participant,
     RecurrenceRule,
     Relation,
@@ -18,27 +17,25 @@ import type {
     Id,
 } from "../types.js";
 import { createId } from "./ids.js";
-import {
-    validateAlert,
-    validateLink,
-    validateLocation,
-    validateParticipant,
-    validateRelation,
-    validateTimeZoneObject,
-    validateTimeZoneRule,
-    validateVirtualLocation,
-} from "../validate/validators-common.js";
-import {
-    validateNDay,
-    validateRecurrenceRule,
-} from "../validate/validators-recurrence.js";
 import { fail } from "../validate/error.js";
 import {
-    assertPatchObject,
-    assertSignedDuration,
-    assertString,
-    assertUtcDateTime,
-} from "../validate/asserts.js";
+    absoluteTriggerSchema,
+    alertSchema,
+    eventPatchSchema,
+    groupPatchSchema,
+    linkSchema,
+    locationSchema,
+    ndaySchema,
+    offsetTriggerSchema,
+    participantSchema,
+    recurrenceRuleSchema,
+    relationSchema,
+    taskPatchSchema,
+    timeZoneRuleSchema,
+    timeZoneSchema,
+    virtualLocationSchema,
+} from "../validate/schemas.js";
+import { validateWithSchema } from "../validate/common.js";
 
 const TYPE_PARTICIPANT = "Participant";
 const TYPE_LOCATION = "Location";
@@ -102,7 +99,7 @@ export function buildParticipant(input: ParticipantInput): Participant {
         fail("participant", `must have @type ${TYPE_PARTICIPANT}`);
     }
     const participant: Participant = { ...input, "@type": TYPE_PARTICIPANT };
-    validateParticipant(participant, "participant");
+    validateWithSchema(participantSchema, participant);
     return participant;
 }
 
@@ -116,7 +113,7 @@ export function buildLocation(input: LocationInput): Location {
         fail("location", `must have @type ${TYPE_LOCATION}`);
     }
     const location: Location = { ...input, "@type": TYPE_LOCATION };
-    validateLocation(location, "location");
+    validateWithSchema(locationSchema, location);
     return location;
 }
 
@@ -135,7 +132,7 @@ export function buildVirtualLocation(
         ...input,
         "@type": TYPE_VIRTUAL_LOCATION,
     };
-    validateVirtualLocation(virtualLocation, "virtualLocation");
+    validateWithSchema(virtualLocationSchema, virtualLocation);
     return virtualLocation;
 }
 
@@ -149,7 +146,7 @@ export function buildAlert(input: AlertInput): Alert {
         fail("alert", `must have @type ${TYPE_ALERT}`);
     }
     const alert: Alert = { ...input, "@type": TYPE_ALERT };
-    validateAlert(alert, "alert");
+    validateWithSchema(alertSchema, alert);
     return alert;
 }
 
@@ -163,8 +160,7 @@ export function buildOffsetTrigger(input: OffsetTriggerInput): OffsetTrigger {
         fail("offsetTrigger", `must have @type ${TYPE_OFFSET_TRIGGER}`);
     }
     const trigger: OffsetTrigger = { ...input, "@type": TYPE_OFFSET_TRIGGER };
-    assertSignedDuration(trigger.offset, "offsetTrigger.offset");
-    assertString(trigger.relativeTo, "offsetTrigger.relativeTo");
+    validateWithSchema(offsetTriggerSchema, trigger);
     return trigger;
 }
 
@@ -183,7 +179,7 @@ export function buildAbsoluteTrigger(
         ...input,
         "@type": TYPE_ABSOLUTE_TRIGGER,
     };
-    assertUtcDateTime(trigger.when, "absoluteTrigger.when");
+    validateWithSchema(absoluteTriggerSchema, trigger);
     return trigger;
 }
 
@@ -197,7 +193,7 @@ export function buildRelation(input: RelationInput): Relation {
         fail("relation", `must have @type ${TYPE_RELATION}`);
     }
     const relation: Relation = { ...input, "@type": TYPE_RELATION };
-    validateRelation(relation, "relation");
+    validateWithSchema(relationSchema, relation);
     return relation;
 }
 
@@ -211,7 +207,7 @@ export function buildLink(input: LinkInput): Link {
         fail("link", `must have @type ${TYPE_LINK}`);
     }
     const link: Link = { ...input, "@type": TYPE_LINK };
-    validateLink(link, "link");
+    validateWithSchema(linkSchema, link);
     return link;
 }
 
@@ -225,7 +221,7 @@ export function buildTimeZone(input: TimeZoneInput): TimeZone {
         fail("timeZone", `must have @type ${TYPE_TIME_ZONE}`);
     }
     const timeZone: TimeZone = { ...input, "@type": TYPE_TIME_ZONE };
-    validateTimeZoneObject(timeZone, "timeZone");
+    validateWithSchema(timeZoneSchema, timeZone);
     return timeZone;
 }
 
@@ -239,7 +235,7 @@ export function buildTimeZoneRule(input: TimeZoneRuleInput): TimeZoneRule {
         fail("timeZoneRule", `must have @type ${TYPE_TIME_ZONE_RULE}`);
     }
     const rule: TimeZoneRule = { ...input, "@type": TYPE_TIME_ZONE_RULE };
-    validateTimeZoneRule(rule, "timeZoneRule");
+    validateWithSchema(timeZoneRuleSchema, rule);
     return rule;
 }
 
@@ -255,7 +251,7 @@ export function buildRecurrenceRule(
         fail("recurrenceRule", `must have @type ${TYPE_RECURRENCE_RULE}`);
     }
     const rule: RecurrenceRule = { ...input, "@type": TYPE_RECURRENCE_RULE };
-    validateRecurrenceRule(rule, "recurrenceRule");
+    validateWithSchema(recurrenceRuleSchema, rule);
     return rule;
 }
 
@@ -269,7 +265,7 @@ export function buildNDay(input: NDayInput): NDay {
         fail("nday", `must have @type ${TYPE_NDAY}`);
     }
     const nday: NDay = { ...input, "@type": TYPE_NDAY };
-    validateNDay(nday, "nday");
+    validateWithSchema(ndaySchema, nday);
     return nday;
 }
 
@@ -280,7 +276,7 @@ export function buildNDay(input: NDayInput): NDay {
  */
 export function buildEventPatch(input: EventPatchInput): EventPatch {
     const patch: EventPatch = { ...input };
-    assertPatchObject(patch, "eventPatch");
+    validateWithSchema(eventPatchSchema, patch);
     return patch;
 }
 
@@ -291,7 +287,7 @@ export function buildEventPatch(input: EventPatchInput): EventPatch {
  */
 export function buildTaskPatch(input: TaskPatchInput): TaskPatch {
     const patch: TaskPatch = { ...input };
-    assertPatchObject(patch, "taskPatch");
+    validateWithSchema(taskPatchSchema, patch);
     return patch;
 }
 
@@ -302,7 +298,7 @@ export function buildTaskPatch(input: TaskPatchInput): TaskPatch {
  */
 export function buildGroupPatch(input: GroupPatchInput): GroupPatch {
     const patch: GroupPatch = { ...input };
-    assertPatchObject(patch, "groupPatch");
+    validateWithSchema(groupPatchSchema, patch);
     return patch;
 }
 

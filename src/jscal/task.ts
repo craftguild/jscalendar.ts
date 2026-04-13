@@ -1,12 +1,13 @@
 import type { Task } from "../types.js";
 import { resolveTimeZone } from "../timezones.js";
 import { deepClone, nowUtc } from "../utils.js";
-import { validateJsCalendarObject } from "../validate.js";
 import { applyCommonDefaults, applyTaskDefaults } from "./defaults.js";
 import { createUid } from "./ids.js";
 import { toLocalDateTime, toUtcDateTime } from "./datetime.js";
 import type { CreateOptions, TaskInput } from "./types.js";
 import { Base } from "./base.js";
+import { taskSchema } from "../validate/schemas.js";
+import { validateWithSchema } from "../validate/common.js";
 
 export class TaskObject extends Base<Task, TaskObject> {
     /**
@@ -59,7 +60,7 @@ export class TaskObject extends Base<Task, TaskObject> {
         applyCommonDefaults(data);
         applyTaskDefaults(data);
         if (options.validate !== false) {
-            validateJsCalendarObject(data);
+            validateWithSchema(taskSchema, data);
         }
         super(data);
     }

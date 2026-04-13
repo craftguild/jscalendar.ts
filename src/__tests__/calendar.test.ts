@@ -5,6 +5,10 @@ type EventInstance = InstanceType<typeof JsCal.Event>;
 
 const fixedNow = () => "2026-02-01T00:00:00Z";
 
+/**
+ * Create a fixed event for patch tests.
+ * @return Event instance.
+ */
 function makeEvent(): EventInstance {
     return new JsCal.Event(
         {
@@ -78,29 +82,24 @@ describe("JsCal.Event", () => {
             { start: new Date("2026-02-02T10:00:00"), duration: 0 },
             { now: fixedNow },
         );
-        expect(zero.data.duration).toBe("PT0S");
-
         const seconds = new JsCal.Event(
             { start: new Date("2026-02-02T10:00:00"), duration: 59 },
             { now: fixedNow },
         );
-        expect(seconds.data.duration).toBe("PT59S");
-
         const negative = new JsCal.Event(
             { start: new Date("2026-02-02T10:00:00"), duration: -1 },
             { now: fixedNow },
         );
+        expect(zero.data.duration).toBe("PT0S");
+        expect(seconds.data.duration).toBe("PT59S");
         expect(negative.data.duration).toBe("PT0S");
     });
 });
 
 describe("Event.patch", () => {
-    it("increments sequence on non-participant patches", () => {
+    it("increments sequence on patches", () => {
         const event = makeEvent();
-        const patched = event.patch(
-            [{ op: "replace", path: "/title", value: "Updated" }],
-            { now: fixedNow },
-        );
+        const patched = event.patch({ title: "Updated" }, { now: fixedNow });
         expect(patched.data.sequence).toBe(1);
         expect(event.data.sequence).toBe(0);
     });
@@ -108,93 +107,54 @@ describe("Event.patch", () => {
     it("respects touch=false", () => {
         const event = makeEvent();
         const before = event.data.updated;
-        const patched = event.patch(
-            [{ op: "replace", path: "/title", value: "No touch" }],
-            { touch: false, now: () => "2026-02-02T00:00:00Z" },
-        );
+        const patched = event.patch({ title: "No touch" }, { touch: false });
         expect(patched.data.updated).toBe(before);
     });
 
-    it("applies patch and updates metadata", () => {
+    it("applies root property patches and updates metadata", () => {
         const event = makeEvent();
-        const patched = event.patch(
-            [{ op: "replace", path: "/title", value: "Patched" }],
-            { now: fixedNow },
-        );
+        const patched = event.patch({ title: "Patched" }, { now: fixedNow });
         expect(patched.data.title).toBe("Patched");
         expect(patched.data.updated).toBe("2026-02-01T00:00:00Z");
         expect(patched.data.sequence).toBe(1);
     });
 
-    it("allows patch to add nested maps with defaults", () => {
+    it("adds nested maps with root PatchObject entries", () => {
         const event = makeEvent();
         const patched = event.patch(
-            [
-                {
-                    op: "add",
-                    path: "/locations",
-                    value: {
-                        l1: {
-                            "@type": "Location",
-                            name: "Room A",
+            {
+                locations: {
+                    l1: { "@type": "Location", name: "Room A" },
+                },
+                virtualLocations: {
+                    v1: {
+                        "@type": "VirtualLocation",
+                        uri: "https://example.com",
+                    },
+                },
+                participants: {
+                    p1: {
+                        "@type": "Participant",
+                        roles: { attendee: true },
+                        email: "a@example.com",
+                    },
+                },
+                alerts: {
+                    a1: {
+                        "@type": "Alert",
+                        trigger: {
+                            "@type": "AbsoluteTrigger",
+                            when: "2026-02-01T01:00:00Z",
                         },
                     },
                 },
-                {
-                    op: "add",
-                    path: "/virtualLocations",
-                    value: {
-                        v1: {
-                            "@type": "VirtualLocation",
-                            uri: "https://example.com",
-                        },
-                    },
+                links: {
+                    link1: { "@type": "Link", href: "https://example.com" },
                 },
-                {
-                    op: "add",
-                    path: "/participants",
-                    value: {
-                        p1: {
-                            "@type": "Participant",
-                            roles: { attendee: true },
-                            email: "a@example.com",
-                        },
-                    },
+                relatedTo: {
+                    r1: { "@type": "Relation", relation: { parent: true } },
                 },
-                {
-                    op: "add",
-                    path: "/alerts",
-                    value: {
-                        a1: {
-                            "@type": "Alert",
-                            trigger: {
-                                "@type": "AbsoluteTrigger",
-                                when: "2026-02-01T01:00:00Z",
-                            },
-                        },
-                    },
-                },
-                {
-                    op: "add",
-                    path: "/links",
-                    value: {
-                        link1: {
-                            "@type": "Link",
-                            href: "https://example.com",
-                        },
-                    },
-                },
-                {
-                    op: "add",
-                    path: "/relatedTo",
-                    value: {
-                        r1: {
-                            "@type": "Relation",
-                            relation: { parent: true },
-                        },
-                    },
-                },
-            ],
+            },
             { now: fixedNow },
         );
         expect(patched.data.locations?.l1?.name).toBe("Room A");
@@ -209,54 +169,263 @@ describe("Event.patch", () => {
         expect(patched.data.relatedTo?.r1?.relation?.parent).toBe(true);
     });
 
-    it("increments sequence for participants-only patch", () => {
-        const event = makeEvent();
-        const patched = event.patch(
-            [
-                {
-                    op: "add",
-                    path: "/participants",
-                    value: {
-                        p1: {
-                            "@type": "Participant",
-                            roles: { attendee: true },
-                        },
+    it("updates nested fields using PatchObject paths", () => {
+        const event = new JsCal.Event(
+            {
+                start: "2026-02-02T10:00:00",
+                participants: {
+                    p1: {
+                        "@type": "Participant",
+                        roles: { attendee: true },
+                        name: "Before",
                     },
                 },
-            ],
+            },
             { now: fixedNow },
         );
-        expect(patched.data.sequence ?? 0).toBe(1);
-    });
-
-    it("op: replace — overwrites an existing field", () => {
-        const event = makeEvent();
         const patched = event.patch(
-            [{ op: "replace", path: "/title", value: "Replaced" }],
+            { "participants/p1/name": "After" },
             { now: fixedNow },
         );
-        expect(patched.data.title).toBe("Replaced");
-        expect(event.data.title).toBe("Kickoff"); // original unchanged
+        expect(patched.data.participants?.p1?.name).toBe("After");
+        expect(event.data.participants?.p1?.name).toBe("Before");
     });
 
-    it("op: add — sets a new field that did not exist", () => {
+    it("updates participant fields after adding a participant map", () => {
         const event = makeEvent();
-        const patched = event.patch(
-            [
-                {
-                    op: "add",
-                    path: "/locations",
-                    value: { l1: { "@type": "Location", name: "Room A" } },
+        const withParticipants = event.patch(
+            {
+                participants: JsCal.participants([
+                    {
+                        id: "p1",
+                        value: {
+                            roles: { "xxx.yyy:yyy": true },
+                            name: "test",
+                        },
+                    },
+                ]),
+            },
+            { now: fixedNow },
+        );
+        const updated = withParticipants.patch(
+            { "/participants/p1/name": "test2" },
+            { now: fixedNow },
+        );
+
+        expect(withParticipants.data.participants?.p1?.name).toBe("test");
+        expect(updated.data.participants?.p1?.name).toBe("test2");
+        expect(updated.data.participants?.p1?.roles).toEqual({
+            "xxx.yyy:yyy": true,
+        });
+    });
+
+    it("applies repeated mixed root and nested PatchObject updates", () => {
+        const event = makeEvent();
+        const first = event.patch(
+            {
+                title: "Phase 1",
+                description: "initial description",
+                participants: JsCal.participants([
+                    {
+                        id: "p1",
+                        value: {
+                            roles: { attendee: true },
+                            name: "Alice",
+                            email: "alice@example.com",
+                        },
+                    },
+                    {
+                        id: "p2",
+                        value: {
+                            roles: { optional: true, attendee: true },
+                            name: "Bob",
+                        },
+                    },
+                ]),
+                locations: JsCal.locations([
+                    {
+                        id: "room",
+                        value: {
+                            name: "Room A",
+                            description: "first floor",
+                        },
+                    },
+                ]),
+            },
+            { now: fixedNow },
+        );
+        const second = first.patch(
+            {
+                title: "Phase 2",
+                "participants/p1/name": "Alice Updated",
+                "participants/p2/email": "bob@example.com",
+                "locations/room/name": "Room B",
+            },
+            { now: fixedNow },
+        );
+        const third = second.patch(
+            {
+                description: null,
+                participants: JsCal.participants([
+                    {
+                        id: "p1",
+                        value: {
+                            roles: { chair: true },
+                            name: "Chair Alice",
+                            email: "chair@example.com",
+                        },
+                    },
+                    {
+                        id: "p3",
+                        value: {
+                            roles: { "xxx.yyy:reviewer": true },
+                            name: "Carol",
+                        },
+                    },
+                ]),
+                "locations/room/description": "second floor",
+            },
+            { now: fixedNow },
+        );
+        const fourth = third.patch(
+            {
+                "participants/p1/name": "Final Alice",
+                "participants/p3/email": "carol@example.com",
+                "locations/room/name": "Room C",
+                title: "Final title",
+            },
+            { now: fixedNow },
+        );
+
+        expect(event.data.title).toBe("Kickoff");
+        expect(event.data.participants).toBeUndefined();
+        expect(first.data.title).toBe("Phase 1");
+        expect(first.data.description).toBe("initial description");
+        expect(first.data.participants?.p1?.name).toBe("Alice");
+        expect(first.data.participants?.p2?.email).toBeUndefined();
+        expect(first.data.locations?.room?.name).toBe("Room A");
+        expect(first.data.sequence).toBe(1);
+
+        expect(second.data.title).toBe("Phase 2");
+        expect(second.data.description).toBe("initial description");
+        expect(second.data.participants?.p1?.name).toBe("Alice Updated");
+        expect(second.data.participants?.p1?.email).toBe("alice@example.com");
+        expect(second.data.participants?.p2?.email).toBe("bob@example.com");
+        expect(second.data.locations?.room?.name).toBe("Room B");
+        expect(second.data.locations?.room?.description).toBe("first floor");
+        expect(second.data.sequence).toBe(2);
+
+        expect(third.data.title).toBe("Phase 2");
+        expect(third.data.description).toBe("");
+        expect(third.data.participants?.p1?.roles).toEqual({ chair: true });
+        expect(third.data.participants?.p1?.name).toBe("Chair Alice");
+        expect(third.data.participants?.p2).toBeUndefined();
+        expect(third.data.participants?.p3?.name).toBe("Carol");
+        expect(third.data.locations?.room?.name).toBe("Room B");
+        expect(third.data.locations?.room?.description).toBe("second floor");
+        expect(third.data.sequence).toBe(3);
+
+        expect(fourth.data.title).toBe("Final title");
+        expect(fourth.data.description).toBe("");
+        expect(fourth.data.participants?.p1?.name).toBe("Final Alice");
+        expect(fourth.data.participants?.p1?.email).toBe("chair@example.com");
+        expect(fourth.data.participants?.p3?.email).toBe("carol@example.com");
+        expect(fourth.data.participants?.p3?.roles).toEqual({
+            "xxx.yyy:reviewer": true,
+        });
+        expect(fourth.data.locations?.room?.name).toBe("Room C");
+        expect(fourth.data.locations?.room?.description).toBe("second floor");
+        expect(fourth.data.sequence).toBe(4);
+    });
+
+    it("applies a diff PatchObject directly", () => {
+        const before = new JsCal.Event(
+            {
+                uid: "diff-before",
+                title: "Before",
+                start: "2026-02-02T10:00:00",
+                participants: {
+                    p1: {
+                        "@type": "Participant",
+                        roles: { attendee: true },
+                        name: "Alice",
+                    },
+                    p2: {
+                        "@type": "Participant",
+                        roles: { optional: true },
+                        name: "Bob",
+                    },
                 },
-            ],
+                locations: {
+                    room: {
+                        "@type": "Location",
+                        name: "Room A",
+                    },
+                },
+                recurrenceRules: [
+                    { "@type": "RecurrenceRule", frequency: "daily" },
+                ],
+            },
             { now: fixedNow },
         );
-        expect(patched.data.locations?.l1?.name).toBe("Room A");
-        expect(event.data.locations).toBeUndefined(); // original unchanged
+        const after = new JsCal.Event(
+            {
+                uid: "diff-before",
+                title: "After",
+                start: "2026-02-02T10:00:00",
+                participants: {
+                    p1: {
+                        "@type": "Participant",
+                        roles: { attendee: true },
+                        name: "Alice Updated",
+                    },
+                    p3: {
+                        "@type": "Participant",
+                        roles: { "xxx.yyy:reviewer": true },
+                        name: "Carol",
+                    },
+                },
+                locations: {
+                    room: {
+                        "@type": "Location",
+                        name: "Room B",
+                    },
+                },
+                recurrenceRules: [
+                    { "@type": "RecurrenceRule", frequency: "weekly" },
+                ],
+            },
+            { now: fixedNow },
+        );
+
+        const patch = JsCal.diff(before, after);
+        const patched = before.patch(patch, { now: fixedNow });
+
+        expect(patch).toEqual({
+            "participants/p1/name": "Alice Updated",
+            "participants/p2": null,
+            "participants/p3": {
+                "@type": "Participant",
+                name: "Carol",
+                roles: { "xxx.yyy:reviewer": true },
+            },
+            "locations/room/name": "Room B",
+            recurrenceRules: [
+                { "@type": "RecurrenceRule", frequency: "weekly" },
+            ],
+            title: "After",
+        });
+        expect(patched.data.title).toBe(after.data.title);
+        expect(patched.data.participants).toEqual(after.data.participants);
+        expect(patched.data.locations).toEqual(after.data.locations);
+        expect(patched.data.recurrenceRules).toEqual(
+            after.data.recurrenceRules,
+        );
+        expect(before.data.participants?.p1?.name).toBe("Alice");
     });
 
-    it("op: remove — deletes an existing field", () => {
-        const base = new JsCal.Event(
+    it("deletes a field when the patch value is null", () => {
+        const event = new JsCal.Event(
             {
                 title: "With desc",
                 start: "2026-02-02T10:00:00",
@@ -264,80 +433,157 @@ describe("Event.patch", () => {
             },
             { now: fixedNow },
         );
-        const patched = base.patch([{ op: "remove", path: "/description" }], {
-            now: fixedNow,
-        });
+        const patched = event.patch({ description: null }, { now: fixedNow });
         expect(patched.data.description).toBe("");
-        expect(base.data.description).toBe("to be removed"); // original unchanged
+        expect(event.data.description).toBe("to be removed");
     });
 
-    it("op: move — moves a value from one path to another", () => {
-        const base = new JsCal.Event(
-            {
-                title: "Original title",
-                start: "2026-02-02T10:00:00",
-                description: "Moved description",
-            },
-            { now: fixedNow },
-        );
-        const patched = base.patch(
-            [{ op: "move", from: "/description", path: "/title" }],
-            {
-                now: fixedNow,
-            },
-        );
-        expect(patched.data.title).toBe("Moved description");
-        expect(patched.data.description).toBe("");
-    });
-
-    it("op: copy — copies a value without removing source", () => {
+    it("throws when a nested PatchObject path is missing", () => {
         const event = makeEvent();
-        const patched = event.patch(
-            [{ op: "copy", from: "/title", path: "/description" }],
-            {
-                now: fixedNow,
-            },
-        );
-        expect(patched.data.title).toBe("Kickoff");
-        expect(patched.data.description).toBe("Kickoff");
-        expect(event.data.description).toBe(""); // original unchanged
-    });
-
-    it("op: test — validates current value before subsequent operations", () => {
-        const event = makeEvent();
-        const patched = event.patch(
-            [
-                { op: "test", path: "/title", value: "Kickoff" },
-                { op: "replace", path: "/title", value: "After test" },
-            ],
-            { now: fixedNow },
-        );
-        expect(patched.data.title).toBe("After test");
-    });
-
-    it("throws when patch changes @type to a different JSCalendar object type", () => {
-        const event = makeEvent();
-
         expect(() =>
-            event.patch([{ op: "replace", path: "/@type", value: "Task" }], {
-                now: fixedNow,
-            }),
-        ).toThrow();
+            event.patch({ "participants/p1/name": "Alice" }, { now: fixedNow }),
+        ).toThrow("Patch pointer missing path: /participants/p1/name");
+    });
 
+    it("throws when PatchObject entries have prefix conflicts", () => {
+        const event = makeEvent();
+        expect(() =>
+            event.patch(
+                {
+                    participants: {
+                        p1: {
+                            "@type": "Participant",
+                            roles: { attendee: true },
+                        },
+                    },
+                    "participants/p1/name": "Alice",
+                },
+                { now: fixedNow },
+            ),
+        ).toThrow(
+            "Patch pointer conflict: /participants is prefix of /participants/p1/name",
+        );
+    });
+
+    it("throws when patch changes @type to a different object type", () => {
+        const event = makeEvent();
+        expect(() =>
+            event.patch({ "@type": "Task" } as never, { now: fixedNow }),
+        ).toThrow();
         expect(event.data["@type"]).toBe("Event");
+    });
+
+    it("throws when diffing different JSCalendar object types", () => {
+        const task = new JsCal.Task({}, { now: fixedNow });
+        const event = makeEvent();
+        const diff = JsCal.diff as (
+            before: { data: import("../types.js").JSCalendarObject },
+            after: { data: import("../types.js").JSCalendarObject },
+        ) => import("../types.js").PatchObject;
+
+        expect(() => diff(task, event)).toThrow(
+            "Cannot diff Task against Event",
+        );
+    });
+
+    it("types reject diffing different JSCalendar object types", () => {
+        if (false) {
+            const task = new JsCal.Task({}, { now: fixedNow });
+            const event = makeEvent();
+            // @ts-expect-error diff inputs must have the same @type.
+            JsCal.diff(task, event);
+        }
+        expect(true).toBe(true);
     });
 
     it("throws when patch result violates JSCalendar validation", () => {
         const event = makeEvent();
-
-        expect(() =>
-            event.patch([{ op: "remove", path: "/start" }], {
-                now: fixedNow,
-            }),
-        ).toThrow();
-
+        expect(() => event.patch({ start: null }, { now: fixedNow })).toThrow();
         expect(event.data.start).toBe("2026-02-02T10:00:00");
         expect(event.data.sequence).toBe(0);
+    });
+
+    it("throws when patch traverses arrays", () => {
+        const event = new JsCal.Event(
+            {
+                start: "2026-02-02T10:00:00",
+                recurrenceRules: [
+                    { "@type": "RecurrenceRule", frequency: "daily" },
+                ],
+            },
+            { now: fixedNow },
+        );
+        expect(() =>
+            event.patch(
+                { "recurrenceRules/0/frequency": "weekly" },
+                { now: fixedNow },
+            ),
+        ).toThrow("Patch pointer references into array");
+    });
+
+    it("replaces arrays in their entirety", () => {
+        const event = new JsCal.Event(
+            {
+                start: "2026-02-02T10:00:00",
+                recurrenceRules: [
+                    { "@type": "RecurrenceRule", frequency: "daily" },
+                ],
+            },
+            { now: fixedNow },
+        );
+
+        const patched = event.patch(
+            {
+                recurrenceRules: [
+                    { "@type": "RecurrenceRule", frequency: "weekly" },
+                ],
+            },
+            { now: fixedNow },
+        );
+
+        expect(patched.data.recurrenceRules).toEqual([
+            { "@type": "RecurrenceRule", frequency: "weekly" },
+        ]);
+        expect(event.data.recurrenceRules).toEqual([
+            { "@type": "RecurrenceRule", frequency: "daily" },
+        ]);
+    });
+
+    it("diff replaces arrays in their entirety", () => {
+        const before = new JsCal.Event(
+            {
+                uid: "array-diff",
+                start: "2026-02-02T10:00:00",
+                recurrenceRules: [
+                    { "@type": "RecurrenceRule", frequency: "daily" },
+                ],
+            },
+            { now: fixedNow },
+        );
+        const after = new JsCal.Event(
+            {
+                uid: "array-diff",
+                start: "2026-02-02T10:00:00",
+                recurrenceRules: [
+                    { "@type": "RecurrenceRule", frequency: "weekly" },
+                ],
+            },
+            { now: fixedNow },
+        );
+
+        expect(JsCal.diff(before, after)).toEqual({
+            recurrenceRules: [
+                { "@type": "RecurrenceRule", frequency: "weekly" },
+            ],
+        });
+    });
+
+    it("throws when patch adds an unknown JSCalendar property", () => {
+        const event = makeEvent();
+        expect(() =>
+            event.patch({ itle: "Updated" }, { now: fixedNow } as never),
+        ).toThrow("object.itle: is not a known JSCalendar property");
+        expect(event.data.title).toBe("Kickoff");
     });
 });
 

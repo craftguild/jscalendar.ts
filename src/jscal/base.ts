@@ -1,11 +1,25 @@
-import type { JSCalendarObject } from "../types.js";
+import type {
+    EventPatch,
+    GroupPatch,
+    JSCalendarObject,
+    PatchLike,
+    TaskPatch,
+} from "../types.js";
+import { applyPatch } from "../patch.js";
 import { deepClone, isNumberValue, nowUtc } from "../utils.js";
-import { validateJsCalendarObject } from "../validate.js";
 import { assertJsCalendarObject } from "../validate/asserts.js";
 import { fail } from "../validate/error.js";
+import { validateWithSchema } from "../validate/common.js";
+import { jsCalendarObjectSchema } from "../validate/schemas.js";
 import type { UpdateOptions } from "./types.js";
-import { applyPatch as applyJsonPatch } from "json-joy/lib/json-patch/index.js";
-import type { JsonPatchOperation } from "json-joy/lib/json-patch/types.js";
+
+type PatchFor<T extends JSCalendarObject> = T extends { "@type": "Event" }
+    ? EventPatch
+    : T extends { "@type": "Task" }
+      ? TaskPatch
+      : T extends { "@type": "Group" }
+        ? GroupPatch
+        : PatchLike;
 
 export abstract class Base<
     T extends JSCalendarObject,
@@ -68,22 +82,17 @@ export abstract class Base<
     }
 
     /**
-     * Apply a JSON Patch document and touch updated/sequence metadata.
-     * @param patch Patch to apply.
+     * Apply a JSCalendar PatchObject and touch updated/sequence metadata.
+     * @param patch PatchObject to apply.
      * @param options Update options.
      * @return New instance with applied patch.
      */
-
-    patch(
-        patch: readonly JsonPatchOperation[],
-        options: UpdateOptions = {},
-    ): TSelf {
-        const result = applyJsonPatch(this.data, patch, { mutate: false });
-        const next: unknown = result.doc;
+    patch(patch: PatchFor<T>, options: UpdateOptions = {}): TSelf {
+        const next = applyPatch(this.data, patch);
         assertJsCalendarObject(next);
         this.assertSameType(next);
         if (options.validate !== false) {
-            validateJsCalendarObject(next);
+            validateWithSchema(jsCalendarObjectSchema, next);
         }
         const touched = this.touchFromPatch(next, options);
         return this.wrap(touched);

@@ -13,9 +13,9 @@ importers:
             date-fns-tz:
                 specifier: ^3.2.0
                 version: 3.2.0(date-fns@4.1.0)
-            json-joy:
-                specifier: ^18.0.0
-                version: 18.0.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rxjs@7.8.2)(tslib@2.8.1)
+            zod:
+                specifier: ^4.3.6
+                version: 4.3.6
         devDependencies:
             "@vitest/coverage-v8":
                 specifier: ^2.1.9
@@ -100,13 +100,6 @@ packages:
             }
         engines: { node: ^20.19.0 || >=22.12.0 }
         hasBin: true
-
-    "@babel/runtime@7.29.2":
-        resolution:
-            {
-                integrity: sha512-JiDShH45zKHWyGe4ZNVRrCjBz8Nh9TMmZG1kh4QTK8hCBTWBi8Da+i7s1fJw7/lYpM4ccepSNfqzZ/QvABBi5g==,
-            }
-        engines: { node: ">=6.9.0" }
 
     "@babel/types@7.29.0":
         resolution:
@@ -626,221 +619,6 @@ packages:
                 integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==,
             }
 
-    "@jsonjoy.com/base64@17.67.0":
-        resolution:
-            {
-                integrity: sha512-5SEsJGsm15aP8TQGkDfJvz9axgPwAEm98S5DxOuYe8e1EbfajcDmgeXXzccEjh+mLnjqEKrkBdjHWS5vFNwDdw==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/base64@18.0.0":
-        resolution:
-            {
-                integrity: sha512-g1Ww+qQEI5p6xh1zI/lwSDZch+czXS3PCfXdRpLxCD6g3qjJx/xMeES1Rhq6cOOtCZIaEp5I7xlbm+b2fIgt3w==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/buffers@1.2.1":
-        resolution:
-            {
-                integrity: sha512-12cdlDwX4RUM3QxmUbVJWqZ/mrK6dFQH4Zxq6+r1YXKXYBNgZXndx2qbCJwh3+WWkCSn67IjnlG3XYTvmvYtgA==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/buffers@17.67.0":
-        resolution:
-            {
-                integrity: sha512-tfExRpYxBvi32vPs9ZHaTjSP4fHAfzSmcahOfNxtvGHcyJel+aibkPlGeBB+7AoC6hL7lXIE++8okecBxx7lcw==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/buffers@18.0.0":
-        resolution:
-            {
-                integrity: sha512-XFB2XUJlcx5eG4kKbaRBIBhbDtJFNGbI91gCnB/jTHY39Aoi2fNvw257RUCnXKxiTNWN5cpxp4qLu30GHp5fOw==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/codegen@17.67.0":
-        resolution:
-            {
-                integrity: sha512-idnkUplROpdBOV0HMcwhsCUS5TRUi9poagdGs70A6S4ux9+/aPuKbh8+UYRTLYQHtXvAdNfQWXDqZEx5k4Dj2Q==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/codegen@18.0.0":
-        resolution:
-            {
-                integrity: sha512-roZo9yL367WqfFW13BTybTwIqmtTEQ3M659WFy+AWmF2z2uRFQCx5zsatNbQfH4CqIfZHLFeSqy5cnlgd83dsw==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/fs-core@4.56.11":
-        resolution:
-            {
-                integrity: sha512-wThHjzUp01ImIjfCwhs+UnFkeGPFAymwLEkOtenHewaKe2pTP12p6r1UuwikA9NEvNf9Vlck92r8fb8n/MWM5w==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/fs-node-builtins@4.56.11":
-        resolution:
-            {
-                integrity: sha512-CNmt3a0zMCIhniFLXtzPWuUxXFU+U+2VyQiIrgt/rRVeEJNrMQUABaRbVxR0Ouw1LyR9RjaEkPM6nYpED+y43A==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/fs-node-utils@4.56.11":
-        resolution:
-            {
-                integrity: sha512-JADOZFDA3wRfsuxkT0+MYc4F9hJO2PYDaY66kRTG6NqGX3+bqmKu66YFYAbII/tEmQWPZeHoClUB23rtQM9UPg==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/fs-node@4.56.11":
-        resolution:
-            {
-                integrity: sha512-D65YrnP6wRuZyEWoSFnBJSr5zARVpVBGctnhie4rCsMuGXNzX7IHKaOt85/Aj7SSoG1N2+/xlNjWmkLvZ2H3Tg==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/fs-print@4.56.11":
-        resolution:
-            {
-                integrity: sha512-rnaKRgCRIn8JGTjxhS0JPE38YM3Pj/H7SW4/tglhIPbfKEkky7dpPayNKV2qy25SZSL15oFVgH/62dMZ/z7cyA==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/fs-snapshot@4.56.11":
-        resolution:
-            {
-                integrity: sha512-IIldPX+cIRQuUol9fQzSS3hqyECxVpYMJQMqdU3dCKZFRzEl1rkIkw4P6y7Oh493sI7YdxZlKr/yWdzEWZ1wGQ==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/json-equal@18.0.0":
-        resolution:
-            {
-                integrity: sha512-U3RspkLpUrZ+OO7TK2E9QaxNtrcYP2gYjKlKE1MPAive9Xxf2zVwPrPsAn8+owxX9Ea+8upJV6qfA8X8FDyviA==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "*"
-
-    "@jsonjoy.com/json-expression@18.0.0":
-        resolution:
-            {
-                integrity: sha512-SxbA0T7vDEZG7ZHWO1M+WZ+8N9wT3pfVZrPO9EqZoHOOq1hw8V5mQceqtDSIBIizArQvTFu6d1z9mWCYSBMpBQ==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/json-pack@17.67.0":
-        resolution:
-            {
-                integrity: sha512-t0ejURcGaZsn1ClbJ/3kFqSOjlryd92eQY465IYrezsXmPcfHPE/av4twRSxf6WE+TkZgLY+71vCZbiIiFKA/w==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/json-pack@18.0.0":
-        resolution:
-            {
-                integrity: sha512-Pamzj1zzW4KhkxMcyrcAVKlgM5+Hkj78EVR8PbRWBjDVtmBTezVLucmZvmysu2MSGRVmIxI68tJXLotfoO2ttQ==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/json-pointer@17.67.0":
-        resolution:
-            {
-                integrity: sha512-+iqOFInH+QZGmSuaybBUNdh7yvNrXvqR+h3wjXm0N/3JK1EyyFAeGJvqnmQL61d1ARLlk/wJdFKSL+LHJ1eaUA==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/json-pointer@18.0.0":
-        resolution:
-            {
-                integrity: sha512-Kiv6DD/Tu51MH4NAwQoZh0CjNbb78bdbDTASJpNnHeXkVgTq3UrknEFAb9oFXymoDx/hboNVppfNG63hVvY42w==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/json-random@1.2.0":
-        resolution:
-            {
-                integrity: sha512-Grck+ONHEDcf1QnNsrryJwUy5M8jw/hs1hQBTY2jnAX+rPUPgejnm+dIlVTY3gh3tJ3Koa1tPcjFxLP3ES3k7w==,
-            }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/json-random@18.0.0":
-        resolution:
-            {
-                integrity: sha512-R+q3ZWh7pPjYFnkD8ToS3oR3lKcSbPQg7sC49JAp5pwmkPpy5esD9HJSgp2afZDi1m8VDEgrtbWbqb3zmKkb+A==,
-            }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/json-type@18.0.0":
-        resolution:
-            {
-                integrity: sha512-uD20dEhzIPS/z2Oq2EfPpvPtd0wnL83duATHkO6p3Rmg0SuL58uo5OFDL9U+sCgDMorZraxBml+Q9QZ3ejPdJA==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            rxjs: "*"
-            tslib: "2"
-
-    "@jsonjoy.com/util@17.67.0":
-        resolution:
-            {
-                integrity: sha512-6+8xBaz1rLSohlGh68D1pdw3AwDi9xydm8QNlAFkvnavCJYSze+pxoW2VKP8p308jtlMRLs5NTHfPlZLd4w7ew==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
-    "@jsonjoy.com/util@18.0.0":
-        resolution:
-            {
-                integrity: sha512-6DQK34jtuLS6OQtDwKSxGfIMv3LoJiEqMUCmZlu7rYgf/iPcJouIH0mUAsWjVWDY8pZXkLBSQIa40pDIEpiwOA==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
     "@napi-rs/wasm-runtime@1.1.1":
         resolution:
             {
@@ -1333,12 +1111,6 @@ packages:
             }
         engines: { node: ">=14" }
 
-    arg@5.0.2:
-        resolution:
-            {
-                integrity: sha512-PYjyFOLKQ9y57JvQ6QLo8dAgNqswh8M1RMJYdQduT6xbWSgK36P/Z/v+p888pM69jMMfS8Xd8F6I1kQ/I9HUGg==,
-            }
-
     assertion-error@2.0.1:
         resolution:
             {
@@ -1446,25 +1218,6 @@ packages:
             }
         engines: { node: ">= 8" }
 
-    css-in-js-utils@3.1.0:
-        resolution:
-            {
-                integrity: sha512-fJAcud6B3rRu+KHYk+Bwf+WFL2MDCJJ1XG9x137tJQ0xYxor7XziQtuGFbWNdqrvF4Tk26O3H73nfVqXt/fW1A==,
-            }
-
-    css-tree@1.1.3:
-        resolution:
-            {
-                integrity: sha512-tRpdppF7TRazZrjJ6v3stzv93qxRcSsFmW6cX0Zm2NVKpxE1WV1HblnghVv9TreireHkqI/VDEsfolRF1p6y7Q==,
-            }
-        engines: { node: ">=8.0.0" }
-
-    csstype@3.2.3:
-        resolution:
-            {
-                integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==,
-            }
-
     date-fns-tz@3.2.0:
         resolution:
             {
@@ -1554,12 +1307,6 @@ packages:
             }
         engines: { node: ">=18" }
 
-    error-stack-parser@2.1.4:
-        resolution:
-            {
-                integrity: sha512-Sk5V6wVazPhq5MhpO+AUxJn5x7XSXGl1R93Vn7i+zS15KDVxQijejNCrz8340/2bgLBjR9GtEG8ZVKONDjcqGQ==,
-            }
-
     es-module-lexer@1.7.0:
         resolution:
             {
@@ -1600,12 +1347,6 @@ packages:
                 integrity: sha512-knvyeauYhqjOYvQ66MznSMs83wmHrCycNEN6Ao+2AeYEfxUIkuiVxdEa1qlGEPK+We3n0THiDciYSsCcgW/DoA==,
             }
         engines: { node: ">=12.0.0" }
-
-    fastest-stable-stringify@2.0.2:
-        resolution:
-            {
-                integrity: sha512-bijHueCGd0LqqNK9b5oCMHc0MluJAx0cwqASgbWMvkO01lCYgIhacVRLcaDz3QnyYIRNJRDwMb41VuT6pHJ91Q==,
-            }
 
     fdir@6.5.0:
         resolution:
@@ -1654,15 +1395,6 @@ packages:
                 integrity: sha512-EoY1N2xCn44xU6750Sx7OjOIT59FkmstNc3X6y5xpz7D5cBtZRe/3pSlTkDJgqsOk3WwZPkWfonhhUJfttQo3w==,
             }
 
-    glob-to-regex.js@1.2.0:
-        resolution:
-            {
-                integrity: sha512-QMwlOQKU/IzqMUOAZWubUOT8Qft+Y0KQWnX9nK3ch0CJg0tTp4TvGZsTfudYKv2NzoQSyPcnA6TYeIQ3jGichQ==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
     glob@10.5.0:
         resolution:
             {
@@ -1697,31 +1429,12 @@ packages:
         engines: { node: ">=18" }
         hasBin: true
 
-    hyperdyperid@1.2.0:
-        resolution:
-            {
-                integrity: sha512-Y93lCzHYgGWdrJ66yIktxiaGULYc6oGiABxhcO5AufBeOyoIdZF7bIfLaOrbM0iGIOXQQgxxRrFEnb+Y6w1n4A==,
-            }
-        engines: { node: ">=10.18" }
-
-    hyphenate-style-name@1.1.0:
-        resolution:
-            {
-                integrity: sha512-WDC/ui2VVRrz3jOVi+XtjqkDjiVjTtFaAGiW37k6b+ohyQ5wYDOGkvCZa8+H0nx3gyvv0+BST9xuOgIyGQ00gw==,
-            }
-
     import-without-cache@0.2.5:
         resolution:
             {
                 integrity: sha512-B6Lc2s6yApwnD2/pMzFh/d5AVjdsDXjgkeJ766FmFuJELIGHNycKRj+l3A39yZPM4CchqNCB4RITEAYB1KUM6A==,
             }
         engines: { node: ">=20.19.0" }
-
-    inline-style-prefixer@7.0.1:
-        resolution:
-            {
-                integrity: sha512-lhYo5qNTQp3EvSSp3sRvXMbVQTLrvGV6DycRMJ5dm2BLMiJ30wpXKdDdgX+GmJZ5uQMucwRKHamXSst3Sj/Giw==,
-            }
 
     is-fullwidth-code-point@3.0.0:
         resolution:
@@ -1792,19 +1505,6 @@ packages:
         engines: { node: ">=6" }
         hasBin: true
 
-    json-joy@18.0.0:
-        resolution:
-            {
-                integrity: sha512-XTLUU3yAxkjw+Bm9BmQ88IjvJbdwlNqV0g/8EZAj5I/90/meJIR1zvVqiFu41zjXlHAK2IP9RwNecGqi9thMCA==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            rxjs: "7"
-            tslib: "2"
-        peerDependenciesMeta:
-            rxjs:
-                optional: true
-
     lint-staged@16.2.7:
         resolution:
             {
@@ -1858,12 +1558,6 @@ packages:
             }
         engines: { node: ">=10" }
 
-    mdn-data@2.0.14:
-        resolution:
-            {
-                integrity: sha512-dn6wd0uw5GsdswPFfsgMp5NSB0/aDe6fK94YJV/AJDYXL6HVLWBsxeq7js7Ad+mU2K9LAlwpk6kN2D5mwCPVow==,
-            }
-
     micromatch@4.0.8:
         resolution:
             {
@@ -1897,15 +1591,6 @@ packages:
             {
                 integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==,
             }
-
-    nano-css@5.6.2:
-        resolution:
-            {
-                integrity: sha512-+6bHaC8dSDGALM1HJjOHVXpuastdu2xFoZlC77Jh4cg+33Zcgm+Gxd+1xsnpZK14eyHObSp82+ll5y3SX75liw==,
-            }
-        peerDependencies:
-            react: "*"
-            react-dom: "*"
 
     nano-spawn@2.0.0:
         resolution:
@@ -2002,15 +1687,6 @@ packages:
         engines: { node: ">=0.10" }
         hasBin: true
 
-    pojo-dump@1.4.0:
-        resolution:
-            {
-                integrity: sha512-iNqHG9jcBI8NI1jrUpPKX8m6CE7u/xtZ+XcrwuIBgBPHkTy+F0cMa7KCsf9eoqp8NgvTMcUtbr1BXgmnXLfULw==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
     postcss@8.5.6:
         resolution:
             {
@@ -2031,21 +1707,6 @@ packages:
             {
                 integrity: sha512-5xZacEEufv3HSTPQuchrvV6soaiACMFnq1H8wkVioctoH3TRha9Sz66lOxRwPK/qZj7HPiSveih9yAyh98gvqA==,
             }
-
-    react-dom@19.2.4:
-        resolution:
-            {
-                integrity: sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ==,
-            }
-        peerDependencies:
-            react: ^19.2.4
-
-    react@19.2.4:
-        resolution:
-            {
-                integrity: sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==,
-            }
-        engines: { node: ">=0.10.0" }
 
     resolve-pkg-maps@1.0.0:
         resolution:
@@ -2104,24 +1765,6 @@ packages:
         engines: { node: ">=18.0.0", npm: ">=8.0.0" }
         hasBin: true
 
-    rtl-css-js@1.16.1:
-        resolution:
-            {
-                integrity: sha512-lRQgou1mu19e+Ya0LsTvKrVJ5TYUbqCVPAiImX3UfLTenarvPUl1QFdvu5Z3PYmHT9RCcwIfbjRQBntExyj3Zg==,
-            }
-
-    rxjs@7.8.2:
-        resolution:
-            {
-                integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==,
-            }
-
-    scheduler@0.27.0:
-        resolution:
-            {
-                integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==,
-            }
-
     semver@7.7.3:
         resolution:
             {
@@ -2164,15 +1807,6 @@ packages:
             }
         engines: { node: ">=18" }
 
-    sonic-forest@1.2.1:
-        resolution:
-            {
-                integrity: sha512-xyiZ4Uca6wtGxOVNCmdTRjJT3JfojLc08R+ZXht4aavYgX2+KishQijY1DYsGKKtEdV+UCbbRM2n19zwHlkJJg==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
-
     source-map-js@1.2.1:
         resolution:
             {
@@ -2180,48 +1814,10 @@ packages:
             }
         engines: { node: ">=0.10.0" }
 
-    source-map@0.5.6:
-        resolution:
-            {
-                integrity: sha512-MjZkVp0NHr5+TPihLcadqnlVoGIoWo4IBHptutGh9wI3ttUYvCG26HkSuDi+K6lsZ25syXJXcctwgyVCt//xqA==,
-            }
-        engines: { node: ">=0.10.0" }
-
-    source-map@0.6.1:
-        resolution:
-            {
-                integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==,
-            }
-        engines: { node: ">=0.10.0" }
-
-    stack-generator@2.0.10:
-        resolution:
-            {
-                integrity: sha512-mwnua/hkqM6pF4k8SnmZ2zfETsRUpWXREfA/goT8SLCV4iOFa4bzOX2nDipWAZFPTjLvQB82f5yaodMVhK0yJQ==,
-            }
-
     stackback@0.0.2:
         resolution:
             {
                 integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==,
-            }
-
-    stackframe@1.3.4:
-        resolution:
-            {
-                integrity: sha512-oeVtt7eWQS+Na6F//S4kJ2K2VbRlS9D43mAlMyVpVWovy9o+jfgH8O9agzANzaiLjclA0oYzUXEM4PurhSUChw==,
-            }
-
-    stacktrace-gps@3.1.2:
-        resolution:
-            {
-                integrity: sha512-GcUgbO4Jsqqg6RxfyTHFiPxdPqF+3LFmQhm7MgCuYQOYuWyqxo5pwRPz5d/u6/WYJdEnWfK4r+jGbyD8TSggXQ==,
-            }
-
-    stacktrace-js@2.0.2:
-        resolution:
-            {
-                integrity: sha512-Je5vBeY4S1r/RnLydLl0TBTi3F2qdfWmYsGvtfZgEI+SCprPppaIhQf5nGcal4gI4cGpCV/duLcAzT1np6sQqg==,
             }
 
     std-env@3.10.0:
@@ -2279,12 +1875,6 @@ packages:
             }
         engines: { node: ">=12" }
 
-    stylis@4.3.6:
-        resolution:
-            {
-                integrity: sha512-yQ3rwFWRfwNUY7H5vpU0wfdkNSnvnJinhF9830Swlaxl03zsOjCfmX0ugac+3LtK0lYSgwL/KXc8oYL3mG4YFQ==,
-            }
-
     supports-color@7.2.0:
         resolution:
             {
@@ -2298,15 +1888,6 @@ packages:
                 integrity: sha512-pFYqmTw68LXVjeWJMST4+borgQP2AyMNbg1BpZh9LbyhUeNkeaPF9gzfPGUAnSMV3qPYdWUwDIjjCLiSDOl7vg==,
             }
         engines: { node: ">=18" }
-
-    thingies@2.5.0:
-        resolution:
-            {
-                integrity: sha512-s+2Bwztg6PhWUD7XMfeYm5qliDdSiZm7M7n8KjTkIsm3l/2lgVRc2/Gx/v+ZX8lT4FMA+i8aQvhcWylldc+ZNw==,
-            }
-        engines: { node: ">=10.18" }
-        peerDependencies:
-            tslib: ^2
 
     tinybench@2.9.0:
         resolution:
@@ -2361,15 +1942,6 @@ packages:
                 integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==,
             }
         engines: { node: ">=8.0" }
-
-    tree-dump@1.1.0:
-        resolution:
-            {
-                integrity: sha512-rMuvhU4MCDbcbnleZTFezWsaZXRFemSqAM+7jPnzUl1fo9w3YEKOxAeui0fz3OI4EU4hf23iyA7uQRVko+UaBA==,
-            }
-        engines: { node: ">=10.0" }
-        peerDependencies:
-            tslib: "2"
 
     tree-kill@1.2.2:
         resolution:
@@ -2452,12 +2024,6 @@ packages:
         peerDependenciesMeta:
             synckit:
                 optional: true
-
-    very-small-parser@1.14.0:
-        resolution:
-            {
-                integrity: sha512-+0/uA9aGygbu83G/NRVCTNX3WpCTIXC1oXTriXCI26zniP/AhtMso+25YZJAaB6HcaXjmJxLemvRK1IK4gTKKA==,
-            }
 
     vite-node@2.1.9:
         resolution:
@@ -2574,6 +2140,12 @@ packages:
         engines: { node: ">= 14.6" }
         hasBin: true
 
+    zod@4.3.6:
+        resolution:
+            {
+                integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==,
+            }
+
 snapshots:
     "@ampproject/remapping@2.3.0":
         dependencies:
@@ -2604,8 +2176,6 @@ snapshots:
     "@babel/parser@8.0.0-rc.1":
         dependencies:
             "@babel/types": 8.0.0-rc.1
-
-    "@babel/runtime@7.29.2": {}
 
     "@babel/types@7.29.0":
         dependencies:
@@ -2806,159 +2376,6 @@ snapshots:
         dependencies:
             "@jridgewell/resolve-uri": 3.1.2
             "@jridgewell/sourcemap-codec": 1.5.5
-
-    "@jsonjoy.com/base64@17.67.0(tslib@2.8.1)":
-        dependencies:
-            tslib: 2.8.1
-
-    "@jsonjoy.com/base64@18.0.0(tslib@2.8.1)":
-        dependencies:
-            tslib: 2.8.1
-
-    "@jsonjoy.com/buffers@1.2.1(tslib@2.8.1)":
-        dependencies:
-            tslib: 2.8.1
-
-    "@jsonjoy.com/buffers@17.67.0(tslib@2.8.1)":
-        dependencies:
-            tslib: 2.8.1
-
-    "@jsonjoy.com/buffers@18.0.0(tslib@2.8.1)":
-        dependencies:
-            tslib: 2.8.1
-
-    "@jsonjoy.com/codegen@17.67.0(tslib@2.8.1)":
-        dependencies:
-            tslib: 2.8.1
-
-    "@jsonjoy.com/codegen@18.0.0(tslib@2.8.1)":
-        dependencies:
-            tslib: 2.8.1
-
-    "@jsonjoy.com/fs-core@4.56.11(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/fs-node-builtins": 4.56.11(tslib@2.8.1)
-            "@jsonjoy.com/fs-node-utils": 4.56.11(tslib@2.8.1)
-            thingies: 2.5.0(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/fs-node-builtins@4.56.11(tslib@2.8.1)":
-        dependencies:
-            tslib: 2.8.1
-
-    "@jsonjoy.com/fs-node-utils@4.56.11(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/fs-node-builtins": 4.56.11(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/fs-node@4.56.11(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/fs-core": 4.56.11(tslib@2.8.1)
-            "@jsonjoy.com/fs-node-builtins": 4.56.11(tslib@2.8.1)
-            "@jsonjoy.com/fs-node-utils": 4.56.11(tslib@2.8.1)
-            "@jsonjoy.com/fs-print": 4.56.11(tslib@2.8.1)
-            "@jsonjoy.com/fs-snapshot": 4.56.11(tslib@2.8.1)
-            glob-to-regex.js: 1.2.0(tslib@2.8.1)
-            thingies: 2.5.0(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/fs-print@4.56.11(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/fs-node-utils": 4.56.11(tslib@2.8.1)
-            tree-dump: 1.1.0(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/fs-snapshot@4.56.11(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/buffers": 17.67.0(tslib@2.8.1)
-            "@jsonjoy.com/fs-node-utils": 4.56.11(tslib@2.8.1)
-            "@jsonjoy.com/json-pack": 17.67.0(tslib@2.8.1)
-            "@jsonjoy.com/util": 17.67.0(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/json-equal@18.0.0(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/codegen": 18.0.0(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/json-expression@18.0.0(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/json-pointer": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/util": 18.0.0(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/json-pack@17.67.0(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/base64": 17.67.0(tslib@2.8.1)
-            "@jsonjoy.com/buffers": 17.67.0(tslib@2.8.1)
-            "@jsonjoy.com/codegen": 17.67.0(tslib@2.8.1)
-            "@jsonjoy.com/json-pointer": 17.67.0(tslib@2.8.1)
-            "@jsonjoy.com/util": 17.67.0(tslib@2.8.1)
-            hyperdyperid: 1.2.0
-            thingies: 2.5.0(tslib@2.8.1)
-            tree-dump: 1.1.0(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/json-pack@18.0.0(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/base64": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/buffers": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/codegen": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/fs-node": 4.56.11(tslib@2.8.1)
-            "@jsonjoy.com/fs-node-utils": 4.56.11(tslib@2.8.1)
-            "@jsonjoy.com/json-pointer": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/util": 18.0.0(tslib@2.8.1)
-            hyperdyperid: 1.2.0
-            thingies: 2.5.0(tslib@2.8.1)
-            tree-dump: 1.1.0(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/json-pointer@17.67.0(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/util": 17.67.0(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/json-pointer@18.0.0(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/util": 18.0.0(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/json-random@1.2.0(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/buffers": 1.2.1(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/json-random@18.0.0(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/buffers": 18.0.0(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/json-type@18.0.0(rxjs@7.8.2)(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/buffers": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/codegen": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/json-expression": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/json-pack": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/json-random": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/util": 18.0.0(tslib@2.8.1)
-            rxjs: 7.8.2
-            sonic-forest: 1.2.1(tslib@2.8.1)
-            thingies: 2.5.0(tslib@2.8.1)
-            tree-dump: 1.1.0(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/util@17.67.0(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/buffers": 17.67.0(tslib@2.8.1)
-            "@jsonjoy.com/codegen": 17.67.0(tslib@2.8.1)
-            tslib: 2.8.1
-
-    "@jsonjoy.com/util@18.0.0(tslib@2.8.1)":
-        dependencies:
-            "@jsonjoy.com/buffers": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/codegen": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/json-equal": 18.0.0(tslib@2.8.1)
-            tslib: 2.8.1
 
     "@napi-rs/wasm-runtime@1.1.1":
         dependencies:
@@ -3182,8 +2599,6 @@ snapshots:
 
     ansis@4.2.0: {}
 
-    arg@5.0.2: {}
-
     assertion-error@2.0.1: {}
 
     ast-kit@3.0.0-beta.1:
@@ -3241,17 +2656,6 @@ snapshots:
             shebang-command: 2.0.0
             which: 2.0.2
 
-    css-in-js-utils@3.1.0:
-        dependencies:
-            hyphenate-style-name: 1.1.0
-
-    css-tree@1.1.3:
-        dependencies:
-            mdn-data: 2.0.14
-            source-map: 0.6.1
-
-    csstype@3.2.3: {}
-
     date-fns-tz@3.2.0(date-fns@4.1.0):
         dependencies:
             date-fns: 4.1.0
@@ -3279,10 +2683,6 @@ snapshots:
     empathic@2.0.0: {}
 
     environment@1.1.0: {}
-
-    error-stack-parser@2.1.4:
-        dependencies:
-            stackframe: 1.3.4
 
     es-module-lexer@1.7.0: {}
 
@@ -3349,8 +2749,6 @@ snapshots:
 
     expect-type@1.3.0: {}
 
-    fastest-stable-stringify@2.0.2: {}
-
     fdir@6.5.0(picomatch@4.0.3):
         optionalDependencies:
             picomatch: 4.0.3
@@ -3373,10 +2771,6 @@ snapshots:
         dependencies:
             resolve-pkg-maps: 1.0.0
 
-    glob-to-regex.js@1.2.0(tslib@2.8.1):
-        dependencies:
-            tslib: 2.8.1
-
     glob@10.5.0:
         dependencies:
             foreground-child: 3.3.1
@@ -3394,15 +2788,7 @@ snapshots:
 
     husky@9.1.7: {}
 
-    hyperdyperid@1.2.0: {}
-
-    hyphenate-style-name@1.1.0: {}
-
     import-without-cache@0.2.5: {}
-
-    inline-style-prefixer@7.0.1:
-        dependencies:
-            css-in-js-utils: 3.1.0
 
     is-fullwidth-code-point@3.0.0: {}
 
@@ -3442,30 +2828,6 @@ snapshots:
             "@pkgjs/parseargs": 0.11.0
 
     jsesc@3.1.0: {}
-
-    json-joy@18.0.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rxjs@7.8.2)(tslib@2.8.1):
-        dependencies:
-            "@jsonjoy.com/base64": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/buffers": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/json-expression": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/json-pack": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/json-pointer": 18.0.0(tslib@2.8.1)
-            "@jsonjoy.com/json-type": 18.0.0(rxjs@7.8.2)(tslib@2.8.1)
-            "@jsonjoy.com/util": 18.0.0(tslib@2.8.1)
-            arg: 5.0.2
-            hyperdyperid: 1.2.0
-            nano-css: 5.6.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-            pojo-dump: 1.4.0(tslib@2.8.1)
-            sonic-forest: 1.2.1(tslib@2.8.1)
-            thingies: 2.5.0(tslib@2.8.1)
-            tree-dump: 1.1.0(tslib@2.8.1)
-            tslib: 2.8.1
-            very-small-parser: 1.14.0
-        optionalDependencies:
-            rxjs: 7.8.2
-        transitivePeerDependencies:
-            - react
-            - react-dom
 
     lint-staged@16.2.7:
         dependencies:
@@ -3512,8 +2874,6 @@ snapshots:
         dependencies:
             semver: 7.7.3
 
-    mdn-data@2.0.14: {}
-
     micromatch@4.0.8:
         dependencies:
             braces: 3.0.3
@@ -3528,19 +2888,6 @@ snapshots:
     minipass@7.1.2: {}
 
     ms@2.1.3: {}
-
-    nano-css@5.6.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
-        dependencies:
-            "@jridgewell/sourcemap-codec": 1.5.5
-            css-tree: 1.1.3
-            csstype: 3.2.3
-            fastest-stable-stringify: 2.0.2
-            inline-style-prefixer: 7.0.1
-            react: 19.2.4
-            react-dom: 19.2.4(react@19.2.4)
-            rtl-css-js: 1.16.1
-            stacktrace-js: 2.0.2
-            stylis: 4.3.6
 
     nano-spawn@2.0.0: {}
 
@@ -3575,12 +2922,6 @@ snapshots:
 
     pidtree@0.6.0: {}
 
-    pojo-dump@1.4.0(tslib@2.8.1):
-        dependencies:
-            "@jsonjoy.com/json-random": 1.2.0(tslib@2.8.1)
-            tree-dump: 1.1.0(tslib@2.8.1)
-            tslib: 2.8.1
-
     postcss@8.5.6:
         dependencies:
             nanoid: 3.3.11
@@ -3590,13 +2931,6 @@ snapshots:
     prettier@3.8.1: {}
 
     quansync@1.0.0: {}
-
-    react-dom@19.2.4(react@19.2.4):
-        dependencies:
-            react: 19.2.4
-            scheduler: 0.27.0
-
-    react@19.2.4: {}
 
     resolve-pkg-maps@1.0.0: {}
 
@@ -3673,16 +3007,6 @@ snapshots:
             "@rollup/rollup-win32-x64-msvc": 4.57.1
             fsevents: 2.3.3
 
-    rtl-css-js@1.16.1:
-        dependencies:
-            "@babel/runtime": 7.29.2
-
-    rxjs@7.8.2:
-        dependencies:
-            tslib: 2.8.1
-
-    scheduler@0.27.0: {}
-
     semver@7.7.3: {}
 
     shebang-command@2.0.0:
@@ -3700,35 +3024,9 @@ snapshots:
             ansi-styles: 6.2.3
             is-fullwidth-code-point: 5.1.0
 
-    sonic-forest@1.2.1(tslib@2.8.1):
-        dependencies:
-            tree-dump: 1.1.0(tslib@2.8.1)
-            tslib: 2.8.1
-
     source-map-js@1.2.1: {}
 
-    source-map@0.5.6: {}
-
-    source-map@0.6.1: {}
-
-    stack-generator@2.0.10:
-        dependencies:
-            stackframe: 1.3.4
-
     stackback@0.0.2: {}
-
-    stackframe@1.3.4: {}
-
-    stacktrace-gps@3.1.2:
-        dependencies:
-            source-map: 0.5.6
-            stackframe: 1.3.4
-
-    stacktrace-js@2.0.2:
-        dependencies:
-            error-stack-parser: 2.1.4
-            stack-generator: 2.0.10
-            stacktrace-gps: 3.1.2
 
     std-env@3.10.0: {}
 
@@ -3765,8 +3063,6 @@ snapshots:
         dependencies:
             ansi-regex: 6.2.2
 
-    stylis@4.3.6: {}
-
     supports-color@7.2.0:
         dependencies:
             has-flag: 4.0.0
@@ -3776,10 +3072,6 @@ snapshots:
             "@istanbuljs/schema": 0.1.3
             glob: 10.5.0
             minimatch: 9.0.5
-
-    thingies@2.5.0(tslib@2.8.1):
-        dependencies:
-            tslib: 2.8.1
 
     tinybench@2.9.0: {}
 
@@ -3801,10 +3093,6 @@ snapshots:
     to-regex-range@5.0.1:
         dependencies:
             is-number: 7.0.0
-
-    tree-dump@1.1.0(tslib@2.8.1):
-        dependencies:
-            tslib: 2.8.1
 
     tree-kill@1.2.2: {}
 
@@ -3835,7 +3123,8 @@ snapshots:
             - synckit
             - vue-tsc
 
-    tslib@2.8.1: {}
+    tslib@2.8.1:
+        optional: true
 
     tsx@4.21.0:
         dependencies:
@@ -3857,8 +3146,6 @@ snapshots:
     unrun@0.2.26:
         dependencies:
             rolldown: 1.0.0-rc.1
-
-    very-small-parser@1.14.0: {}
 
     vite-node@2.1.9(@types/node@20.19.30):
         dependencies:
@@ -3950,3 +3237,5 @@ snapshots:
             strip-ansi: 7.1.2
 
     yaml@2.8.2: {}
+
+    zod@4.3.6: {}

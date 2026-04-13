@@ -1,12 +1,13 @@
 import type { Group } from "../types.js";
 import { deepClone, nowUtc } from "../utils.js";
-import { validateJsCalendarObject } from "../validate.js";
 import { applyCommonDefaults } from "./defaults.js";
 import { createUid } from "./ids.js";
 import type { CreateOptions, GroupInput } from "./types.js";
 import { Base } from "./base.js";
 import { normalizeEntry } from "./normalize.js";
 import { toUtcDateTime } from "./datetime.js";
+import { groupSchema } from "../validate/schemas.js";
+import { validateWithSchema } from "../validate/common.js";
 
 export class GroupObject extends Base<Group, GroupObject> {
     /**
@@ -46,7 +47,7 @@ export class GroupObject extends Base<Group, GroupObject> {
         }
         applyCommonDefaults(data);
         if (options.validate !== false) {
-            validateJsCalendarObject(data);
+            validateWithSchema(groupSchema, data);
         }
         super(data);
     }

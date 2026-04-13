@@ -42,7 +42,7 @@
     "dependencies": {
         "date-fns": "^4.1.0",
         "date-fns-tz": "^3.2.0",
-        "json-joy": "^18.0.0"
+        "zod": "^4.3.6"
     },
     "lint-staged": {
         "**/*": "prettier --write --ignore-unknown"

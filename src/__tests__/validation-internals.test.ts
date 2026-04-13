@@ -6,250 +6,239 @@ import {
     buildTaskPatch,
 } from "../jscal/builders.js";
 import { assertJsonValue, assertPatchObject } from "../validate/asserts.js";
+import { validateWithSchema } from "../validate/common.js";
 import {
-    validateAlert,
-    validateCommon,
-    validateLocation,
-    validateParticipant,
-} from "../validate/validators-common.js";
-import {
-    validateNDay,
-    validateRecurrenceRule,
-} from "../validate/validators-recurrence.js";
+    alertSchema,
+    jsCalendarObjectSchema,
+    locationSchema,
+    ndaySchema,
+    participantSchema,
+    recurrenceRuleSchema,
+} from "../validate/schemas.js";
 
 describe("validation internals", () => {
     it("accepts rich common objects and nested validators", () => {
         expect(() =>
-            validateCommon(
-                {
-                    "@type": "Event",
-                    uid: "evt-1",
-                    updated: "2026-02-01T00:00:00Z",
-                    start: "2026-02-01T09:00:00",
-                    created: "2026-01-31T00:00:00Z",
-                    sequence: 1,
-                    method: "publish",
-                    title: "Review",
-                    description: "Agenda",
-                    descriptionContentType: "text/plain; charset=utf-8",
-                    showWithoutTime: false,
-                    relatedTo: {
-                        parent: {
-                            "@type": "Relation",
-                            relation: { first: true },
-                        },
+            validateWithSchema(jsCalendarObjectSchema, {
+                "@type": "Event",
+                uid: "evt-1",
+                updated: "2026-02-01T00:00:00Z",
+                start: "2026-02-01T09:00:00",
+                created: "2026-01-31T00:00:00Z",
+                sequence: 1,
+                method: "publish",
+                title: "Review",
+                description: "Agenda",
+                descriptionContentType: "text/plain; charset=utf-8",
+                showWithoutTime: false,
+                relatedTo: {
+                    parent: {
+                        "@type": "Relation",
+                        relation: { first: true },
                     },
-                    keywords: { sprint: true },
-                    categories: { planning: true },
-                    color: "#123456",
-                    recurrenceId: "2026-02-02T09:00:00",
-                    recurrenceIdTimeZone: "Asia/Tokyo",
-                    recurrenceRules: [
-                        {
-                            "@type": "RecurrenceRule",
-                            frequency: "weekly",
-                            byDay: [
-                                { "@type": "NDay", day: "mo", nthOfPeriod: 1 },
-                            ],
-                            byMonthDay: [1, -1],
-                            byMonth: ["1", "12"],
-                            byYearDay: [1, -1],
-                            byWeekNo: [1, -1],
-                            byHour: [9, 17],
-                            byMinute: [0, 30],
-                            bySecond: [0, 15],
-                            bySetPosition: [1, -1],
-                            interval: 2,
-                            count: 4,
-                            skip: "forward",
-                            firstDayOfWeek: "mo",
-                            until: "2026-03-01T09:00:00",
-                        },
-                    ],
-                    excludedRecurrenceRules: [
-                        {
-                            "@type": "RecurrenceRule",
-                            frequency: "daily",
-                            count: 1,
-                        },
-                    ],
-                    recurrenceOverrides: {
-                        "2026-02-09T09:00:00": {
-                            title: "Shifted",
-                            priority: 3,
-                        },
+                },
+                keywords: { sprint: true },
+                categories: { planning: true },
+                color: "#123456",
+                recurrenceId: "2026-02-02T09:00:00",
+                recurrenceIdTimeZone: "Asia/Tokyo",
+                recurrenceRules: [
+                    {
+                        "@type": "RecurrenceRule",
+                        frequency: "weekly",
+                        byDay: [{ "@type": "NDay", day: "mo", nthOfPeriod: 1 }],
+                        byMonthDay: [1, -1],
+                        byMonth: ["1", "12"],
+                        byYearDay: [1, -1],
+                        byWeekNo: [1, -1],
+                        byHour: [9, 17],
+                        byMinute: [0, 30],
+                        bySecond: [0, 15],
+                        bySetPosition: [1, -1],
+                        interval: 2,
+                        count: 4,
+                        skip: "forward",
+                        firstDayOfWeek: "mo",
+                        until: "2026-03-01T09:00:00",
                     },
-                    excluded: false,
-                    priority: 1,
-                    freeBusyStatus: "busy",
-                    privacy: "public",
-                    replyTo: { organizer: "mailto:team@example.com" },
-                    sentBy: "mailto:bot@example.com",
-                    locations: {
-                        loc1: {
-                            "@type": "Location",
-                            name: "Room A",
-                            description: "Floor 3",
-                            locationTypes: { conference: true },
-                            relativeTo: "loc-parent",
-                            timeZone: "Asia/Tokyo",
-                            coordinates: "geo:35.0,139.0",
-                            links: {
-                                link1: {
-                                    "@type": "Link",
-                                    href: "https://example.com/map",
-                                },
+                ],
+                excludedRecurrenceRules: [
+                    {
+                        "@type": "RecurrenceRule",
+                        frequency: "daily",
+                        count: 1,
+                    },
+                ],
+                recurrenceOverrides: {
+                    "2026-02-09T09:00:00": {
+                        title: "Shifted",
+                        priority: 3,
+                    },
+                },
+                excluded: false,
+                priority: 1,
+                freeBusyStatus: "busy",
+                privacy: "public",
+                replyTo: { organizer: "mailto:team@example.com" },
+                sentBy: "mailto:bot@example.com",
+                locations: {
+                    loc1: {
+                        "@type": "Location",
+                        name: "Room A",
+                        description: "Floor 3",
+                        locationTypes: { conference: true },
+                        relativeTo: "loc-parent",
+                        timeZone: "Asia/Tokyo",
+                        coordinates: "geo:35.0,139.0",
+                        links: {
+                            link1: {
+                                "@type": "Link",
+                                href: "https://example.com/map",
                             },
-                        },
-                    },
-                    virtualLocations: {
-                        v1: {
-                            "@type": "VirtualLocation",
-                            name: "Meet",
-                            description: "Online",
-                            uri: "https://example.com/meet",
-                            features: { chat: true },
-                        },
-                    },
-                    links: {
-                        l1: {
-                            "@type": "Link",
-                            href: "https://example.com/doc",
-                            cid: "<doc@example.com>",
-                            contentType: "text/plain; charset=utf-8",
-                            size: 12,
-                            rel: "describedby",
-                            display: "badge",
-                            title: "Doc",
-                        },
-                    },
-                    participants: {
-                        p1: {
-                            "@type": "Participant",
-                            name: "Alice",
-                            email: "alice@example.com",
-                            description: "Owner",
-                            sendTo: { imip: "mailto:alice@example.com" },
-                            kind: "individual",
-                            roles: { attendee: true },
-                            locationId: "loc1",
-                            language: "en",
-                            participationStatus: "accepted",
-                            participationComment: "ok",
-                            expectReply: true,
-                            scheduleAgent: "server",
-                            scheduleForceSend: false,
-                            scheduleSequence: 1,
-                            scheduleStatus: ["2.0;Success"],
-                            scheduleUpdated: "2026-02-01T00:00:00Z",
-                            sentBy: "mailto:assistant@example.com",
-                            invitedBy: "inviter",
-                            delegatedTo: { delegate1: true },
-                            delegatedFrom: { delegator1: true },
-                            memberOf: { team1: true },
-                            links: {
-                                link1: {
-                                    "@type": "Link",
-                                    href: "https://example.com/profile",
-                                },
-                            },
-                            progress: "in-process",
-                            progressUpdated: "2026-02-01T00:00:00Z",
-                            percentComplete: 50,
-                        },
-                    },
-                    requestStatus: "2.0;Success",
-                    useDefaultAlerts: false,
-                    alerts: {
-                        a1: {
-                            "@type": "Alert",
-                            acknowledged: "2026-02-01T00:00:00Z",
-                            action: "display",
-                            trigger: {
-                                "@type": "OffsetTrigger",
-                                offset: "-PT15M",
-                            },
-                            relatedTo: {
-                                start: {
-                                    "@type": "Relation",
-                                    relation: { first: true },
-                                },
-                            },
-                        },
-                    },
-                    localizations: {
-                        en: { title: "Review EN", keywords: { sprint: true } },
-                    },
-                    timeZone: "Asia/Tokyo",
-                    timeZones: {
-                        "Asia/Tokyo": {
-                            "@type": "TimeZone",
-                            tzId: "Asia/Tokyo",
-                            updated: "2026-02-01T00:00:00Z",
-                            url: "https://example.com/tz",
-                            validUntil: "2027-02-01T00:00:00Z",
-                            aliases: { JST: true },
-                            standard: [
-                                {
-                                    "@type": "TimeZoneRule",
-                                    start: "2026-01-01T00:00:00",
-                                    offsetFrom: "+09:00",
-                                    offsetTo: "+09:00",
-                                    recurrenceRules: [
-                                        {
-                                            "@type": "RecurrenceRule",
-                                            frequency: "yearly",
-                                            byMonth: ["1"],
-                                        },
-                                    ],
-                                    comments: ["fixed offset"],
-                                },
-                            ],
-                            daylight: [
-                                {
-                                    "@type": "TimeZoneRule",
-                                    start: "2026-06-01T00:00:00",
-                                    offsetFrom: "+09:00",
-                                    offsetTo: "+10:00",
-                                },
-                            ],
                         },
                     },
                 },
-                "object",
-            ),
+                virtualLocations: {
+                    v1: {
+                        "@type": "VirtualLocation",
+                        name: "Meet",
+                        description: "Online",
+                        uri: "https://example.com/meet",
+                        features: { chat: true },
+                    },
+                },
+                links: {
+                    l1: {
+                        "@type": "Link",
+                        href: "https://example.com/doc",
+                        cid: "<doc@example.com>",
+                        contentType: "text/plain; charset=utf-8",
+                        size: 12,
+                        rel: "describedby",
+                        display: "badge",
+                        title: "Doc",
+                    },
+                },
+                participants: {
+                    p1: {
+                        "@type": "Participant",
+                        name: "Alice",
+                        email: "alice@example.com",
+                        description: "Owner",
+                        sendTo: { imip: "mailto:alice@example.com" },
+                        kind: "individual",
+                        roles: { attendee: true },
+                        locationId: "loc1",
+                        language: "en",
+                        participationStatus: "accepted",
+                        participationComment: "ok",
+                        expectReply: true,
+                        scheduleAgent: "server",
+                        scheduleForceSend: false,
+                        scheduleSequence: 1,
+                        scheduleStatus: ["2.0;Success"],
+                        scheduleUpdated: "2026-02-01T00:00:00Z",
+                        sentBy: "mailto:assistant@example.com",
+                        invitedBy: "inviter",
+                        delegatedTo: { delegate1: true },
+                        delegatedFrom: { delegator1: true },
+                        memberOf: { team1: true },
+                        links: {
+                            link1: {
+                                "@type": "Link",
+                                href: "https://example.com/profile",
+                            },
+                        },
+                        progress: "in-process",
+                        progressUpdated: "2026-02-01T00:00:00Z",
+                        percentComplete: 50,
+                    },
+                },
+                requestStatus: "2.0;Success",
+                useDefaultAlerts: false,
+                alerts: {
+                    a1: {
+                        "@type": "Alert",
+                        acknowledged: "2026-02-01T00:00:00Z",
+                        action: "display",
+                        trigger: {
+                            "@type": "OffsetTrigger",
+                            offset: "-PT15M",
+                        },
+                        relatedTo: {
+                            start: {
+                                "@type": "Relation",
+                                relation: { first: true },
+                            },
+                        },
+                    },
+                },
+                localizations: {
+                    en: { title: "Review EN", keywords: { sprint: true } },
+                },
+                timeZone: "Asia/Tokyo",
+                timeZones: {
+                    "Asia/Tokyo": {
+                        "@type": "TimeZone",
+                        tzId: "Asia/Tokyo",
+                        updated: "2026-02-01T00:00:00Z",
+                        url: "https://example.com/tz",
+                        validUntil: "2027-02-01T00:00:00Z",
+                        aliases: { JST: true },
+                        standard: [
+                            {
+                                "@type": "TimeZoneRule",
+                                start: "2026-01-01T00:00:00",
+                                offsetFrom: "+09:00",
+                                offsetTo: "+09:00",
+                                recurrenceRules: [
+                                    {
+                                        "@type": "RecurrenceRule",
+                                        frequency: "yearly",
+                                        byMonth: ["1"],
+                                    },
+                                ],
+                                comments: ["fixed offset"],
+                            },
+                        ],
+                        daylight: [
+                            {
+                                "@type": "TimeZoneRule",
+                                start: "2026-06-01T00:00:00",
+                                offsetFrom: "+09:00",
+                                offsetTo: "+10:00",
+                            },
+                        ],
+                    },
+                },
+            }),
         ).not.toThrow();
     });
 
     it("rejects invalid nested object shapes", () => {
         expect(() =>
-            validateCommon(
-                {
-                    "@type": "Event",
-                    uid: "evt-1",
-                    updated: "2026-02-01T00:00:00Z",
-                    start: "2026-02-01T09:00:00",
-                    recurrenceOverrides: [] as never,
-                },
-                "object",
-            ),
+            validateWithSchema(jsCalendarObjectSchema, {
+                "@type": "Event",
+                uid: "evt-1",
+                updated: "2026-02-01T00:00:00Z",
+                start: "2026-02-01T09:00:00",
+                recurrenceOverrides: [] as never,
+            }),
         ).toThrowError("object.recurrenceOverrides: must be an object");
 
         expect(() =>
-            validateCommon(
-                {
-                    "@type": "Event",
-                    uid: "evt-1",
-                    updated: "2026-02-01T00:00:00Z",
-                    start: "2026-02-01T09:00:00",
-                    timeZones: [] as never,
-                },
-                "object",
-            ),
+            validateWithSchema(jsCalendarObjectSchema, {
+                "@type": "Event",
+                uid: "evt-1",
+                updated: "2026-02-01T00:00:00Z",
+                start: "2026-02-01T09:00:00",
+                timeZones: [] as never,
+            }),
         ).toThrowError("object.timeZones: must be an object");
 
         expect(() =>
-            validateLocation(
+            validateWithSchema(
+                locationSchema,
                 {
                     "@type": "Location",
                     links: [] as never,
@@ -259,7 +248,8 @@ describe("validation internals", () => {
         ).toThrowError("location.links: must be an object");
 
         expect(() =>
-            validateParticipant(
+            validateWithSchema(
+                participantSchema,
                 {
                     "@type": "Participant",
                     roles: { attendee: true },
@@ -270,7 +260,8 @@ describe("validation internals", () => {
         ).toThrowError("participant.sendTo: must be an object");
 
         expect(() =>
-            validateAlert(
+            validateWithSchema(
+                alertSchema,
                 {
                     "@type": "Alert",
                     trigger: { "@type": "OffsetTrigger" } as never,
@@ -282,14 +273,16 @@ describe("validation internals", () => {
 
     it("covers recurrence validators for valid and invalid edge cases", () => {
         expect(() =>
-            validateNDay(
+            validateWithSchema(
+                ndaySchema,
                 { "@type": "NDay", day: "fr", nthOfPeriod: -1 },
                 "rule.byDay[0]",
             ),
         ).not.toThrow();
 
         expect(() =>
-            validateRecurrenceRule(
+            validateWithSchema(
+                recurrenceRuleSchema,
                 {
                     "@type": "RecurrenceRule",
                     frequency: "monthly",
@@ -313,7 +306,8 @@ describe("validation internals", () => {
         ).not.toThrow();
 
         expect(() =>
-            validateRecurrenceRule(
+            validateWithSchema(
+                recurrenceRuleSchema,
                 {
                     "@type": "RecurrenceRule",
                     frequency: "daily",
@@ -326,7 +320,8 @@ describe("validation internals", () => {
         );
 
         expect(() =>
-            validateRecurrenceRule(
+            validateWithSchema(
+                recurrenceRuleSchema,
                 {
                     "@type": "RecurrenceRule",
                     frequency: "daily",
@@ -339,7 +334,8 @@ describe("validation internals", () => {
         );
 
         expect(() =>
-            validateRecurrenceRule(
+            validateWithSchema(
+                recurrenceRuleSchema,
                 {
                     "@type": "RecurrenceRule",
                     frequency: "daily",
@@ -352,7 +348,8 @@ describe("validation internals", () => {
         );
 
         expect(() =>
-            validateRecurrenceRule(
+            validateWithSchema(
+                recurrenceRuleSchema,
                 {
                     "@type": "RecurrenceRule",
                     frequency: "daily",
@@ -363,7 +360,8 @@ describe("validation internals", () => {
         ).toThrowError("rule.byHour[0]: must be an integer between 0 and 23");
 
         expect(() =>
-            validateRecurrenceRule(
+            validateWithSchema(
+                recurrenceRuleSchema,
                 {
                     "@type": "RecurrenceRule",
                     frequency: "daily",
@@ -374,7 +372,8 @@ describe("validation internals", () => {
         ).toThrowError("rule.byMinute[0]: must be an integer between 0 and 59");
 
         expect(() =>
-            validateRecurrenceRule(
+            validateWithSchema(
+                recurrenceRuleSchema,
                 {
                     "@type": "RecurrenceRule",
                     frequency: "daily",
@@ -385,7 +384,8 @@ describe("validation internals", () => {
         ).toThrowError("rule.bySecond[0]: must be an integer between 0 and 59");
 
         expect(() =>
-            validateRecurrenceRule(
+            validateWithSchema(
+                recurrenceRuleSchema,
                 {
                     "@type": "RecurrenceRule",
                     frequency: "daily",

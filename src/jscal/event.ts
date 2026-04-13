@@ -1,7 +1,6 @@
 import type { Event } from "../types.js";
 import { resolveTimeZone } from "../timezones.js";
 import { deepClone, nowUtc } from "../utils.js";
-import { validateJsCalendarObject } from "../validate.js";
 import { applyCommonDefaults, applyEventDefaults } from "./defaults.js";
 import { durationFromSeconds } from "./duration.js";
 import { createUid } from "./ids.js";
@@ -9,6 +8,8 @@ import { toLocalDateTime, toUtcDateTime } from "./datetime.js";
 import type { CreateOptions, EventInput } from "./types.js";
 import { Base } from "./base.js";
 import { isStringValue, isNumberValue } from "../utils.js";
+import { eventSchema } from "../validate/schemas.js";
+import { validateWithSchema } from "../validate/common.js";
 
 export class EventObject extends Base<Event, EventObject> {
     /**
@@ -72,7 +73,7 @@ export class EventObject extends Base<Event, EventObject> {
         applyCommonDefaults(data);
         applyEventDefaults(data);
         if (options.validate !== false) {
-            validateJsCalendarObject(data);
+            validateWithSchema(eventSchema, data);
         }
         super(data);
     }

@@ -135,6 +135,9 @@ function applyPatchEntries(
     patch: PatchLike,
 ): void {
     for (const [rawPointer, value] of Object.entries(patch)) {
+        if (value === undefined) {
+            throw new PatchError(`Patch value is undefined: ${rawPointer}`);
+        }
         const pointer = normalizePointer(rawPointer);
         const segments = splitPointer(pointer);
         applyPointerSegments(target, pointer, segments, value);
@@ -253,6 +256,7 @@ function getNextRecord(
     if (next === undefined) {
         throw new PatchError(`Patch pointer missing path: ${pointer}`);
     }
+    assertNotArray(next, pointer);
     assertObject(next, pointer);
     return next;
 }
