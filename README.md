@@ -39,7 +39,7 @@ The repository includes a single-file example at
 
 ```html
 <script type="module">
-    import { JsCal } from "https://esm.sh/@craftguild/jscalendar@0.6.0?bundle";
+    import { JsCal } from "https://esm.sh/@craftguild/jscalendar@0.7.0?bundle";
 
     const event = new JsCal.Event({
         title: "Browser demo",
@@ -262,7 +262,8 @@ const updated = event.patch({ title: "Live" });
 
 Patch helpers return new instances and keep metadata such as `updated` and
 `sequence` consistent. `patch` applies RFC 8984 PatchObject updates.
-Patched results are validated as RFC 8984 JSCalendar objects by default.
+Patched results are validated as RFC 8984 JSCalendar objects by default,
+and the original instance is left unchanged.
 
 Basic replacement:
 
@@ -270,6 +271,26 @@ Basic replacement:
 const patchedEvent = event.patch({ title: "Updated title" });
 
 const patchedAgain = patchedEvent.patch({ title: "Patched title" });
+```
+
+PatchObject keys can be either root property names or slash-separated
+paths. You can mix both forms in one patch as long as the paths do not
+conflict:
+
+```ts
+const updated = event.patch({
+    title: "Updated title",
+    participants: JsCal.participants([
+        {
+            id: "p1",
+            value: JsCal.Participant({
+                roles: { attendee: true },
+                name: "Alice",
+            }),
+        },
+    ]),
+    "locations/l1/name": "Main room",
+});
 ```
 
 Adding nested maps with raw values:
@@ -317,6 +338,22 @@ Removing a value uses `null`:
 const withoutDescription = event.patch({ description: null });
 ```
 
+RFC 8984 does not allow conflicting patch paths. For example, changing
+`participants` and `participants/p1/name` in the same PatchObject is
+rejected because the first operation changes an ancestor of the second:
+
+```ts
+event.patch({
+    participants: JsCal.participants([
+        { id: "p1", value: { roles: { attendee: true } } },
+    ]),
+    "participants/p1/name": "Alice", // throws
+});
+```
+
+Patch paths also cannot reference inside arrays. Replace the array property
+as a whole instead of patching paths such as `recurrenceRules/0/frequency`.
+
 You can derive a PatchObject from two JSCalendar objects and apply it
 directly:
 
@@ -324,6 +361,10 @@ directly:
 const patch = JsCal.diff(beforeEvent, afterEvent);
 const updated = beforeEvent.patch(patch);
 ```
+
+`JsCal.diff` requires both objects to have the same `@type`. When an array
+changes, the generated PatchObject replaces the whole array instead of
+patching inside it.
 
 ## Date Inputs and Time Zones
 
@@ -480,6 +521,8 @@ These points are implemented directly as specified in RFC 8984 and are
 covered by tests.
 
 - Core JSCalendar object model (Event / Task / Group) as TypeScript types.
+- RFC 8984 PatchObject updates, including slash-separated property paths,
+  conflict rejection, `null` deletion, and whole-array replacement.
 - Recurrence rules and overrides (RRULE/EXRULE semantics in RFC 8984).
 - Default values for fields defined by RFC 8984 (e.g., `sequence`, `priority`, `freeBusyStatus`, etc.).
 - LocalDateTime and UTCDateTime handling with explicit types.
@@ -494,7 +537,7 @@ and this library’s behavior.
 
 - **rscale**: only `gregorian` is supported; any other value throws.
 - **Validation**: strict type/format validation is enforced by default (RFC-style date/time and duration rules),
-  but can be disabled with `{ validate: false }` in create/update/patch.
+  but can be disabled with `{ validate: false }` in creation and patch calls.
 - **Time zone and DST**:
     - Range filtering and recurrence comparisons use `date-fns-tz`.
     - Recurrence generation still operates on LocalDateTime arithmetic and does not fully normalize
