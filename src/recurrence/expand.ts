@@ -13,18 +13,24 @@ import {
     localDateTimeToUtcDate,
 } from "../utils.js";
 import { TYPE_EVENT, TYPE_TASK } from "./constants.js";
-import type { RecurrenceRange } from "./types.js";
+import type {
+    RecurrenceExpandOptions,
+    RecurrencePageOptions,
+    RecurrenceRange,
+} from "./types.js";
 import { expandRule } from "./rules.js";
 
 /**
  * Expand recurrence into occurrences sorted by recurrenceId/start.
  * @param items JSCalendar objects to expand.
  * @param range Date range bounds.
+ * @param options Expansion options.
  * @return Generator of expanded occurrences.
  */
 export function* expandRecurrence(
     items: JSCalendarObject[],
     range: RecurrenceRange,
+    options: RecurrenceExpandOptions = {},
 ): Generator<JSCalendarObject> {
     const occurrences: Array<{
         value: JSCalendarObject;
@@ -32,10 +38,11 @@ export function* expandRecurrence(
         index: number;
     }> = [];
     let index = 0;
+    const includeAnchor = options.includeAnchor ?? true;
 
     for (const item of items) {
         if (item["@type"] === TYPE_EVENT) {
-            for (const occurrence of expandEvent(item, range)) {
+            for (const occurrence of expandEvent(item, range, includeAnchor)) {
                 occurrences.push({
                     value: occurrence,
                     key: occurrenceKey(occurrence),
@@ -46,7 +53,7 @@ export function* expandRecurrence(
             continue;
         }
         if (item["@type"] === TYPE_TASK) {
-            for (const occurrence of expandTask(item, range)) {
+            for (const occurrence of expandTask(item, range, includeAnchor)) {
                 occurrences.push({
                     value: occurrence,
                     key: occurrenceKey(occurrence),
@@ -82,12 +89,12 @@ export function* expandRecurrence(
 export function expandRecurrencePaged(
     items: JSCalendarObject[],
     range: RecurrenceRange,
-    options: { limit: number; cursor?: string | undefined },
+    options: RecurrencePageOptions,
 ): { items: JSCalendarObject[]; nextCursor?: string } {
     const result: JSCalendarObject[] = [];
     let nextCursor: string | undefined;
 
-    for (const occurrence of expandRecurrence(items, range)) {
+    for (const occurrence of expandRecurrence(items, range, options)) {
         const key = occurrenceKey(occurrence);
         if (options.cursor && key) {
             if (key <= options.cursor) {
@@ -113,11 +120,13 @@ export function expandRecurrencePaged(
  * Expand event into occurrences.
  * @param event Event to expand.
  * @param range Date range bounds.
+ * @param includeAnchor Whether the source event should be included.
  * @return Generator of expanded occurrences.
  */
 function expandEvent(
     event: Event,
     range: RecurrenceRange,
+    includeAnchor: boolean,
 ): Generator<JSCalendarObject> {
     return expandObject(
         event,
@@ -127,6 +136,7 @@ function expandEvent(
         event.excludedRecurrenceRules,
         event.recurrenceOverrides,
         event.timeZone ?? null,
+        includeAnchor,
     );
 }
 
@@ -134,11 +144,13 @@ function expandEvent(
  * Expand task into occurrences.
  * @param task Task to expand.
  * @param range Date range bounds.
+ * @param includeAnchor Whether the source task should be included.
  * @return Generator of expanded occurrences.
  */
 function expandTask(
     task: Task,
     range: RecurrenceRange,
+    includeAnchor: boolean,
 ): Generator<JSCalendarObject> {
     const anchor = task.start ?? task.due;
     if (!anchor) {
@@ -152,6 +164,7 @@ function expandTask(
         task.excludedRecurrenceRules,
         task.recurrenceOverrides,
         task.timeZone ?? null,
+        includeAnchor,
     );
 }
 
@@ -176,6 +189,7 @@ function occurrenceKey(value: JSCalendarObject): string | undefined {
  * @param excludedRules Exclusion recurrence rules.
  * @param overrides Recurrence overrides keyed by LocalDateTime.
  * @param recurrenceIdTimeZone Optional time zone for recurrence IDs.
+ * @param includeAnchor Whether the source item should be included.
  * @return Generator of expanded occurrences.
  */
 function* expandObject(
@@ -186,6 +200,7 @@ function* expandObject(
     excludedRules?: RecurrenceRule[],
     overrides?: Record<string, PatchLike>,
     recurrenceIdTimeZone?: TimeZoneId | null,
+    includeAnchor = true,
 ): Generator<JSCalendarObject> {
     const hasZone = Boolean(recurrenceIdTimeZone);
     const fromLocal =
@@ -202,19 +217,21 @@ function* expandObject(
     const overrideKeys = overrides ? Object.keys(overrides) : [];
 
     if (!rules || rules.length === 0) {
-        if (hasZone && recurrenceIdTimeZone) {
-            if (
-                isInRangeWithZone(
-                    anchor,
-                    fromDate,
-                    toDate,
-                    recurrenceIdTimeZone,
-                )
-            ) {
+        if (includeAnchor) {
+            if (hasZone && recurrenceIdTimeZone) {
+                if (
+                    isInRangeWithZone(
+                        anchor,
+                        fromDate,
+                        toDate,
+                        recurrenceIdTimeZone,
+                    )
+                ) {
+                    yield base;
+                }
+            } else if (isInRange(anchor, fromLocal, toLocal)) {
                 yield base;
             }
-        } else if (isInRange(anchor, fromLocal, toLocal)) {
-            yield base;
         }
         for (const key of overrideKeys) {
             const patch = overrides ? overrides[key] : undefined;
@@ -277,7 +294,7 @@ function* expandObject(
         }
     }
 
-    if (!occurrences.includes(anchor)) {
+    if (includeAnchor && !occurrences.includes(anchor)) {
         occurrences.push(anchor);
     }
     for (const key of overrideKeys) {
@@ -294,6 +311,7 @@ function* expandObject(
     }
 
     for (const dt of sorted) {
+        if (!includeAnchor && dt === anchor) continue;
         if (excluded.has(dt)) continue;
         const patch = overrides ? overrides[dt] : undefined;
         const instance = buildInstance(base, dt, recurrenceIdTimeZone, patch);

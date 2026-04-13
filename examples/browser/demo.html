@@ -1,0 +1,1455 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>JSCalendar ESM Browser Demo</title>
+        <style>
+            :root {
+                --bg: #f4efe6;
+                --panel: rgba(255, 252, 247, 0.88);
+                --panel-strong: #fffaf2;
+                --line: #d7c7a8;
+                --ink: #1e1a16;
+                --muted: #62594f;
+                --accent: #b8572f;
+                --accent-soft: #f3d5b9;
+                --ok: #116149;
+                --shadow: 0 24px 60px rgba(77, 49, 22, 0.14);
+                --radius: 24px;
+                --page-gap: 24px;
+                --mono: "SFMono-Regular", "Consolas", "Menlo", monospace;
+                --sans: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                height: 100vh;
+                font-family: var(--sans);
+                color: var(--ink);
+                background:
+                    radial-gradient(
+                        circle at top left,
+                        rgba(184, 87, 47, 0.18),
+                        transparent 28%
+                    ),
+                    radial-gradient(
+                        circle at right 20%,
+                        rgba(17, 97, 73, 0.13),
+                        transparent 24%
+                    ),
+                    linear-gradient(180deg, #fbf6ee 0%, #f0e4d4 100%);
+                padding: var(--page-gap);
+                overflow: hidden;
+            }
+
+            .shell {
+                max-width: 1200px;
+                margin: 0 auto;
+                height: calc(100vh - (var(--page-gap) * 2));
+                display: grid;
+                grid-template-rows: auto minmax(0, 1fr);
+                gap: var(--page-gap);
+            }
+
+            .hero {
+                padding: 20px 22px;
+                border: 1px solid rgba(255, 255, 255, 0.55);
+                border-radius: calc(var(--radius) + 6px);
+                background: linear-gradient(
+                    135deg,
+                    rgba(255, 250, 242, 0.92),
+                    rgba(248, 238, 224, 0.78)
+                );
+                box-shadow: var(--shadow);
+            }
+
+            .eyebrow {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                padding: 7px 12px;
+                border-radius: 999px;
+                background: rgba(184, 87, 47, 0.12);
+                color: var(--accent);
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                white-space: nowrap;
+            }
+
+            h1 {
+                margin: 12px 0 8px;
+                font-size: clamp(1.6rem, 2.8vw, 2.8rem);
+                line-height: 1;
+                letter-spacing: -0.04em;
+            }
+
+            .hero p {
+                margin: 0;
+                color: var(--muted);
+                font-size: 0.95rem;
+                line-height: 1.5;
+                text-wrap: pretty;
+            }
+
+            .hero code {
+                white-space: nowrap;
+            }
+
+            .grid {
+                display: grid;
+                grid-template-columns: minmax(420px, 520px) minmax(0, 1fr);
+                gap: var(--page-gap);
+                align-items: stretch;
+                min-height: 0;
+            }
+
+            .panel {
+                border: 1px solid rgba(255, 255, 255, 0.7);
+                border-radius: var(--radius);
+                background: var(--panel);
+                backdrop-filter: blur(10px);
+                box-shadow: var(--shadow);
+            }
+
+            .controls {
+                padding: 24px;
+                min-height: 0;
+                overflow: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .outputs {
+                display: grid;
+                gap: 24px;
+                min-height: 0;
+                overflow: auto;
+                padding: 24px;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .controls::-webkit-scrollbar,
+            .outputs::-webkit-scrollbar {
+                display: none;
+            }
+
+            .panel-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 18px;
+            }
+
+            .panel-header h2,
+            .panel-header h3 {
+                margin: 0;
+                font-size: 1rem;
+                letter-spacing: 0.02em;
+            }
+
+            .hint {
+                color: var(--muted);
+                font-size: 0.84rem;
+            }
+
+            .field-group {
+                display: grid;
+                gap: 14px;
+                margin-bottom: 18px;
+            }
+
+            .split {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 12px;
+            }
+
+            label,
+            legend {
+                display: grid;
+                gap: 8px;
+                font-size: 0.9rem;
+                font-weight: 600;
+            }
+
+            input,
+            select,
+            textarea,
+            button {
+                font: inherit;
+            }
+
+            input,
+            select,
+            textarea {
+                width: 100%;
+                border: 1px solid var(--line);
+                border-radius: 14px;
+                background: rgba(255, 255, 255, 0.82);
+                padding: 12px 14px;
+                color: var(--ink);
+            }
+
+            select {
+                appearance: none;
+            }
+
+            .native-select {
+                position: absolute;
+                inline-size: 1px;
+                block-size: 1px;
+                margin: 0;
+                padding: 0;
+                border: 0;
+                clip-path: inset(50%);
+                overflow: hidden;
+                white-space: nowrap;
+            }
+
+            .select-shell {
+                position: relative;
+            }
+
+            input:focus,
+            textarea:focus {
+                outline: 0;
+                border-color: rgba(184, 87, 47, 0.55);
+                box-shadow:
+                    0 0 0 3px rgba(184, 87, 47, 0.14),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            }
+
+            .select-trigger {
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 14px;
+                width: 100%;
+                border: 1px solid var(--line);
+                border-radius: 14px;
+                background: linear-gradient(
+                    180deg,
+                    rgba(255, 255, 255, 0.92),
+                    rgba(248, 238, 224, 0.86)
+                );
+                padding: 12px 14px;
+                color: var(--ink);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            }
+
+            .select-trigger::after {
+                content: "";
+                flex: 0 0 auto;
+                inline-size: 8px;
+                block-size: 8px;
+                border-right: 1.75px solid rgba(98, 89, 79, 0.56);
+                border-bottom: 1.75px solid rgba(98, 89, 79, 0.56);
+                border-bottom-right-radius: 2px;
+                transform: rotate(45deg) translateY(-1px);
+                transition:
+                    transform 140ms ease,
+                    border-color 140ms ease;
+            }
+
+            .select-shell[data-open="true"] .select-trigger::after {
+                transform: rotate(225deg) translateY(0);
+            }
+
+            .select-trigger:focus-visible {
+                outline: 0;
+                border-color: rgba(184, 87, 47, 0.55);
+                box-shadow:
+                    0 0 0 3px rgba(184, 87, 47, 0.14),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            }
+
+            .select-trigger:hover,
+            .select-option:hover {
+                transform: none;
+            }
+
+            .select-value {
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .select-popover {
+                position: absolute;
+                z-index: 20;
+                top: calc(100% + 8px);
+                left: 0;
+                right: 0;
+                display: grid;
+                gap: 6px;
+                padding: 8px;
+                border: 1px solid rgba(184, 87, 47, 0.18);
+                border-radius: 18px;
+                background: rgba(255, 249, 241, 0.98);
+                box-shadow: 0 18px 34px rgba(77, 49, 22, 0.18);
+            }
+
+            .select-popover[hidden] {
+                display: none;
+            }
+
+            .select-option {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                width: 100%;
+                border: 1px solid transparent;
+                border-radius: 12px;
+                background: transparent;
+                padding: 10px 12px;
+                color: var(--ink);
+                text-align: left;
+                box-shadow: none;
+                transform: none;
+            }
+
+            .select-option:hover,
+            .select-option[data-highlighted="true"] {
+                background: rgba(243, 213, 185, 0.42);
+                border-color: rgba(184, 87, 47, 0.18);
+                transform: none;
+            }
+
+            .select-option[data-selected="true"] {
+                background: var(--accent-soft);
+                border-color: rgba(184, 87, 47, 0.28);
+            }
+
+            textarea {
+                min-height: 100px;
+                resize: vertical;
+            }
+
+            fieldset {
+                margin: 0;
+                padding: 16px;
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                background: rgba(255, 250, 242, 0.7);
+            }
+
+            .toggle-row,
+            .checkbox-row,
+            .weekday-grid,
+            .button-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .toggle-row input,
+            .checkbox-row input,
+            .weekday-grid input {
+                position: absolute;
+                inline-size: 1px;
+                block-size: 1px;
+                margin: 0;
+                padding: 0;
+                border: 0;
+                clip-path: inset(50%);
+                overflow: hidden;
+                white-space: nowrap;
+            }
+
+            .pill {
+                position: relative;
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                max-width: 100%;
+                padding: 10px 12px;
+                border: 1px solid var(--line);
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.82);
+                font-size: 0.9rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition:
+                    border-color 140ms ease,
+                    background 140ms ease,
+                    box-shadow 140ms ease;
+            }
+
+            .pill:hover {
+                border-color: rgba(184, 87, 47, 0.4);
+                box-shadow: 0 4px 10px rgba(77, 49, 22, 0.05);
+            }
+
+            .pill-indicator {
+                position: relative;
+                flex: 0 0 auto;
+                inline-size: 16px;
+                block-size: 16px;
+                border: 1.5px solid rgba(98, 89, 79, 0.65);
+                background: #fffdf9;
+                transition:
+                    border-color 140ms ease,
+                    background 140ms ease,
+                    box-shadow 140ms ease;
+            }
+
+            .toggle-row .pill-indicator {
+                border-radius: 999px;
+            }
+
+            .checkbox-row .pill-indicator,
+            .weekday-grid .pill-indicator {
+                border-radius: 6px;
+            }
+
+            .pill-indicator::after {
+                content: "";
+                position: absolute;
+                inset: 50%;
+                transform: translate(-50%, -50%) scale(0.75);
+                opacity: 0;
+                transition:
+                    opacity 140ms ease,
+                    transform 140ms ease;
+            }
+
+            .toggle-row .pill-indicator::after {
+                inline-size: 6px;
+                block-size: 6px;
+                border-radius: 999px;
+                background: #fffdf9;
+            }
+
+            .checkbox-row .pill-indicator::after,
+            .weekday-grid .pill-indicator::after {
+                inline-size: 8px;
+                block-size: 4px;
+                border-left: 2px solid #fffdf9;
+                border-bottom: 2px solid #fffdf9;
+                transform: translate(-50%, -58%) rotate(-45deg) scale(0.85);
+                transform-origin: center;
+            }
+
+            .pill-label {
+                line-height: 1;
+            }
+
+            .pill input:checked + .pill-indicator {
+                border-color: var(--accent);
+                background: var(--accent);
+                box-shadow: 0 0 0 3px rgba(184, 87, 47, 0.12);
+            }
+
+            .pill input:checked + .pill-indicator::after {
+                opacity: 1;
+            }
+
+            .pill input:checked ~ .pill-label {
+                color: var(--ink);
+            }
+
+            .pill:has(input:checked) {
+                border-color: rgba(184, 87, 47, 0.45);
+                background: rgba(255, 248, 241, 0.96);
+                box-shadow: 0 6px 14px rgba(184, 87, 47, 0.08);
+            }
+
+            .pill:has(input:focus-visible) {
+                outline: 3px solid rgba(184, 87, 47, 0.24);
+                outline-offset: 2px;
+            }
+
+            .button-row {
+                margin-top: 22px;
+            }
+
+            .button-row button {
+                flex: 1 1 180px;
+            }
+
+            button {
+                border: 0;
+                border-radius: 14px;
+                padding: 13px 16px;
+                cursor: pointer;
+                transition:
+                    transform 140ms ease,
+                    opacity 140ms ease,
+                    box-shadow 140ms ease;
+            }
+
+            button:hover {
+                transform: translateY(-1px);
+            }
+
+            .primary {
+                background: var(--accent);
+                color: #fffaf4;
+                box-shadow: 0 14px 30px rgba(184, 87, 47, 0.24);
+            }
+
+            .secondary {
+                background: var(--accent-soft);
+                color: var(--ink);
+            }
+
+            .ghost {
+                background: rgba(255, 255, 255, 0.82);
+                color: var(--ink);
+                border: 1px solid var(--line);
+            }
+
+            .output-panel {
+                padding: 0;
+            }
+
+            .output-panel + .output-panel {
+                border-top: 1px solid rgba(215, 199, 168, 0.9);
+                padding-top: 24px;
+            }
+
+            pre {
+                margin: 0;
+                padding: 16px;
+                border-radius: 18px;
+                background: #201b17;
+                color: #f6ebde;
+                font-family: var(--mono);
+                font-size: 0.86rem;
+                line-height: 1.55;
+                white-space: pre-wrap;
+                word-break: break-word;
+                overflow-wrap: anywhere;
+                overflow-x: auto;
+            }
+
+            .status {
+                margin-bottom: 18px;
+                padding: 14px 16px;
+                border-radius: 16px;
+                background: rgba(17, 97, 73, 0.09);
+                border: 1px solid rgba(17, 97, 73, 0.18);
+                color: var(--ok);
+                font-size: 0.92rem;
+                line-height: 1.5;
+            }
+
+            .status[hidden] {
+                display: none;
+            }
+
+            .status[data-state="error"] {
+                background: rgba(184, 87, 47, 0.1);
+                border-color: rgba(184, 87, 47, 0.22);
+                color: #8a3418;
+            }
+
+            .meta {
+                display: grid;
+                gap: 8px;
+                margin-top: 18px;
+                padding-top: 18px;
+                border-top: 1px dashed var(--line);
+                color: var(--muted);
+                font-size: 0.82rem;
+            }
+
+            .hidden {
+                display: none;
+            }
+
+            @media (max-width: 1080px) {
+                body {
+                    height: auto;
+                    min-height: 100vh;
+                    overflow: auto;
+                }
+
+                .shell {
+                    height: auto;
+                    grid-template-rows: auto;
+                }
+
+                .grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .controls {
+                    overflow: visible;
+                }
+
+                .outputs {
+                    overflow: visible;
+                }
+            }
+
+            @media (max-width: 640px) {
+                :root {
+                    --page-gap: 14px;
+                }
+
+                body {
+                    padding: var(--page-gap);
+                }
+
+                .hero,
+                .controls,
+                .outputs {
+                    padding: 18px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="shell">
+            <section class="hero">
+                <div class="eyebrow">ESM Browser Demo</div>
+                <h1>
+                    Build a JSCalendar object, expand recurrence, export iCal.
+                </h1>
+                <p>
+                    This page imports
+                    <code>@craftguild/jscalendar</code> from
+                    <code>https://esm.sh/</code>. Open this file directly in a
+                    browser, switch between Event and Task, add an optional
+                    recurrence rule, then inspect the generated JSCalendar
+                    object, expanded occurrences, and iCalendar output.
+                </p>
+            </section>
+
+            <div class="grid">
+                <section class="panel controls">
+                    <div class="panel-header">
+                        <h2>Inputs</h2>
+                    </div>
+
+                    <div id="status" class="status" data-state="ok">
+                        Loading library from esm.sh...
+                    </div>
+
+                    <form id="demo-form">
+                        <div class="field-group">
+                            <legend>Kind</legend>
+                            <div class="toggle-row">
+                                <label class="pill">
+                                    <input
+                                        type="radio"
+                                        name="kind"
+                                        value="Event"
+                                        checked
+                                    />
+                                    <span
+                                        class="pill-indicator"
+                                        aria-hidden="true"
+                                    ></span>
+                                    <span class="pill-label">Event</span>
+                                </label>
+                                <label class="pill">
+                                    <input
+                                        type="radio"
+                                        name="kind"
+                                        value="Task"
+                                    />
+                                    <span
+                                        class="pill-indicator"
+                                        aria-hidden="true"
+                                    ></span>
+                                    <span class="pill-label">Task</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <label>
+                                Title
+                                <input
+                                    name="title"
+                                    type="text"
+                                    value="Weekly planning session"
+                                />
+                            </label>
+                            <label>
+                                Description
+                                <textarea name="description">
+Discuss priorities, blockers, and follow-up actions.</textarea
+                                >
+                            </label>
+                        </div>
+
+                        <div class="field-group split">
+                            <label>
+                                Start
+                                <input name="start" type="datetime-local" />
+                            </label>
+                            <label>
+                                Time zone
+                                <input
+                                    name="timeZone"
+                                    type="text"
+                                    value="Etc/UTC"
+                                />
+                            </label>
+                        </div>
+
+                        <div id="event-fields" class="field-group split">
+                            <label>
+                                Duration
+                                <input
+                                    name="duration"
+                                    type="text"
+                                    value="PT1H"
+                                />
+                            </label>
+                            <label>
+                                Status
+                                <select
+                                    name="eventStatus"
+                                    class="js-enhance-select"
+                                >
+                                    <option value="confirmed" selected>
+                                        confirmed
+                                    </option>
+                                    <option value="tentative">tentative</option>
+                                    <option value="cancelled">cancelled</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div id="task-fields" class="field-group split hidden">
+                            <label>
+                                Due
+                                <input name="due" type="datetime-local" />
+                            </label>
+                            <label>
+                                Progress
+                                <select
+                                    name="taskProgress"
+                                    class="js-enhance-select"
+                                >
+                                    <option value="needs-action" selected>
+                                        needs-action
+                                    </option>
+                                    <option value="in-process">
+                                        in-process
+                                    </option>
+                                    <option value="completed">completed</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <fieldset class="field-group">
+                            <legend>Recurrence</legend>
+                            <div class="checkbox-row">
+                                <label class="pill">
+                                    <input
+                                        name="recurring"
+                                        type="checkbox"
+                                        checked
+                                    />
+                                    <span
+                                        class="pill-indicator"
+                                        aria-hidden="true"
+                                    ></span>
+                                    <span class="pill-label"
+                                        >Enable recurrence</span
+                                    >
+                                </label>
+                            </div>
+
+                            <div class="split">
+                                <label>
+                                    Frequency
+                                    <select
+                                        name="frequency"
+                                        class="js-enhance-select"
+                                    >
+                                        <option value="weekly" selected>
+                                            weekly
+                                        </option>
+                                        <option value="daily">daily</option>
+                                        <option value="monthly">monthly</option>
+                                    </select>
+                                </label>
+                                <label>
+                                    Interval
+                                    <input
+                                        name="interval"
+                                        type="number"
+                                        min="1"
+                                        value="1"
+                                    />
+                                </label>
+                            </div>
+
+                            <label>
+                                Until
+                                <input name="until" type="datetime-local" />
+                            </label>
+
+                            <label>
+                                Weekly byDay
+                                <div class="weekday-grid">
+                                    <label class="pill">
+                                        <input
+                                            type="checkbox"
+                                            name="byDay"
+                                            value="mo"
+                                        />
+                                        <span
+                                            class="pill-indicator"
+                                            aria-hidden="true"
+                                        ></span>
+                                        <span class="pill-label">MO</span>
+                                    </label>
+                                    <label class="pill">
+                                        <input
+                                            type="checkbox"
+                                            name="byDay"
+                                            value="tu"
+                                        />
+                                        <span
+                                            class="pill-indicator"
+                                            aria-hidden="true"
+                                        ></span>
+                                        <span class="pill-label">TU</span>
+                                    </label>
+                                    <label class="pill">
+                                        <input
+                                            type="checkbox"
+                                            name="byDay"
+                                            value="we"
+                                            checked
+                                        />
+                                        <span
+                                            class="pill-indicator"
+                                            aria-hidden="true"
+                                        ></span>
+                                        <span class="pill-label">WE</span>
+                                    </label>
+                                    <label class="pill">
+                                        <input
+                                            type="checkbox"
+                                            name="byDay"
+                                            value="th"
+                                        />
+                                        <span
+                                            class="pill-indicator"
+                                            aria-hidden="true"
+                                        ></span>
+                                        <span class="pill-label">TH</span>
+                                    </label>
+                                    <label class="pill">
+                                        <input
+                                            type="checkbox"
+                                            name="byDay"
+                                            value="fr"
+                                        />
+                                        <span
+                                            class="pill-indicator"
+                                            aria-hidden="true"
+                                        ></span>
+                                        <span class="pill-label">FR</span>
+                                    </label>
+                                    <label class="pill">
+                                        <input
+                                            type="checkbox"
+                                            name="byDay"
+                                            value="sa"
+                                        />
+                                        <span
+                                            class="pill-indicator"
+                                            aria-hidden="true"
+                                        ></span>
+                                        <span class="pill-label">SA</span>
+                                    </label>
+                                    <label class="pill">
+                                        <input
+                                            type="checkbox"
+                                            name="byDay"
+                                            value="su"
+                                        />
+                                        <span
+                                            class="pill-indicator"
+                                            aria-hidden="true"
+                                        ></span>
+                                        <span class="pill-label">SU</span>
+                                    </label>
+                                </div>
+                            </label>
+                        </fieldset>
+
+                        <fieldset class="field-group">
+                            <legend>Expansion range</legend>
+                            <div class="split">
+                                <label>
+                                    From
+                                    <input
+                                        name="rangeFrom"
+                                        type="datetime-local"
+                                    />
+                                </label>
+                                <label>
+                                    To
+                                    <input
+                                        name="rangeTo"
+                                        type="datetime-local"
+                                    />
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <div class="meta">
+                            <div>
+                                Valid inputs refresh the object, recurrence
+                                expansion, and iCalendar output automatically.
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="meta">
+                        <div>
+                            Import URL:
+                            <code
+                                >https://esm.sh/@craftguild/jscalendar@0.6.0?bundle</code
+                            >
+                        </div>
+                        <div>
+                            The page uses only browser APIs and ESM imports.
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel outputs">
+                    <article class="output-panel">
+                        <div class="panel-header">
+                            <h3>Generated JSCalendar object</h3>
+                            <span class="hint">Current Event or Task</span>
+                        </div>
+                        <pre id="object-output"></pre>
+                    </article>
+
+                    <article class="output-panel">
+                        <div class="panel-header">
+                            <h3>Expanded occurrences</h3>
+                            <span class="hint">
+                                Range-based expansion result
+                            </span>
+                        </div>
+                        <pre id="occurrences-output"></pre>
+                    </article>
+
+                    <article class="output-panel">
+                        <div class="panel-header">
+                            <h3>iCalendar export</h3>
+                            <span class="hint"
+                                >Output of JsCal.toICal([...])</span
+                            >
+                        </div>
+                        <pre id="ical-output"></pre>
+                    </article>
+                </section>
+            </div>
+        </div>
+
+        <script type="module">
+            import { JsCal } from "https://esm.sh/@craftguild/jscalendar@0.6.0?bundle";
+
+            const form = document.querySelector("#demo-form");
+            const status = document.querySelector("#status");
+            const eventFields = document.querySelector("#event-fields");
+            const taskFields = document.querySelector("#task-fields");
+            const objectOutput = document.querySelector("#object-output");
+            const occurrencesOutput = document.querySelector(
+                "#occurrences-output",
+            );
+            const icalOutput = document.querySelector("#ical-output");
+            const customSelects = [];
+            let currentItem = null;
+            let syncTimer = 0;
+
+            /**
+             * Render an object as pretty JSON.
+             * @param {unknown} value Value to print.
+             * @returns {void}
+             */
+            function renderJson(value) {
+                objectOutput.textContent = JSON.stringify(value, null, 2);
+            }
+
+            /**
+             * Render the output panes for a loading state.
+             * @returns {void}
+             */
+            function renderLoadingOutputs() {
+                objectOutput.textContent = "Loading library from esm.sh...";
+                occurrencesOutput.textContent =
+                    "Loading library from esm.sh...";
+                icalOutput.textContent = "Loading library from esm.sh...";
+            }
+
+            /**
+             * Render the output panes for an error state.
+             * @param {string} message Error message to display.
+             * @returns {void}
+             */
+            function renderErrorOutputs(message) {
+                objectOutput.textContent = `Error: ${message}`;
+                occurrencesOutput.textContent = `Error: ${message}`;
+                icalOutput.textContent = `Error: ${message}`;
+            }
+
+            /**
+             * Update the status banner.
+             * @param {string} message Status message.
+             * @param {"ok" | "error"} state Banner state.
+             * @returns {void}
+             */
+            function setStatus(message, state = "ok") {
+                status.textContent = message;
+                status.dataset.state = state;
+                status.hidden = false;
+            }
+
+            /**
+             * Hide the status banner.
+             * @returns {void}
+             */
+            function clearStatus() {
+                status.hidden = true;
+            }
+
+            /**
+             * Convert a datetime-local string into a Date.
+             * @param {string} value Datetime-local string.
+             * @returns {Date}
+             */
+            function toDate(value) {
+                return new Date(value);
+            }
+
+            /**
+             * Format a Date for a datetime-local input.
+             * @param {Date} value Date to format.
+             * @returns {string}
+             */
+            function formatDateTimeLocal(value) {
+                const year = value.getFullYear().toString().padStart(4, "0");
+                const month = String(value.getMonth() + 1).padStart(2, "0");
+                const day = String(value.getDate()).padStart(2, "0");
+                const hours = String(value.getHours()).padStart(2, "0");
+                const minutes = String(value.getMinutes()).padStart(2, "0");
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+
+            /**
+             * Build the default date range used by the demo.
+             * @returns {{ start: Date; end: Date }}
+             */
+            function createDefaultDateRange() {
+                const start = new Date();
+                start.setHours(9, 0, 0, 0);
+
+                const end = new Date(start);
+                end.setMonth(end.getMonth() + 1);
+                end.setHours(8, 59, 0, 0);
+
+                return { start, end };
+            }
+
+            /**
+             * Seed datetime inputs with the default date range.
+             * @returns {void}
+             */
+            function initializeDefaultDates() {
+                const { start, end } = createDefaultDateRange();
+                form.elements.start.value = formatDateTimeLocal(start);
+                form.elements.due.value = formatDateTimeLocal(end);
+                form.elements.until.value = formatDateTimeLocal(end);
+                form.elements.rangeFrom.value = formatDateTimeLocal(start);
+                form.elements.rangeTo.value = formatDateTimeLocal(end);
+            }
+
+            /**
+             * Normalize a datetime-local value into LocalDateTime format.
+             * @param {string} value Datetime-local string.
+             * @returns {string | undefined}
+             */
+            function toLocalDateTime(value) {
+                if (!value) return undefined;
+                return value.length === 16 ? `${value}:00` : value;
+            }
+
+            /**
+             * Return selected recurrence weekdays as RecurrenceRule byDay values.
+             * @returns {Array<{ "@type": "NDay"; day: string }>}
+             */
+            function readByDay() {
+                const selected = Array.from(
+                    form.querySelectorAll('input[name="byDay"]:checked'),
+                ).map((input) => input.value);
+
+                return selected.map((day) => JsCal.ByDay({ day }));
+            }
+
+            /**
+             * Dispatch native-like events for a hidden select after value changes.
+             * @param {HTMLSelectElement} select Select element to notify.
+             * @returns {void}
+             */
+            function notifySelectChange(select) {
+                select.dispatchEvent(new Event("input", { bubbles: true }));
+                select.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+
+            /**
+             * Close every custom select except the current one.
+             * @param {ReturnType<typeof createCustomSelect> | null} current Open instance.
+             * @returns {void}
+             */
+            function closeOtherSelects(current = null) {
+                customSelects.forEach((instance) => {
+                    if (instance !== current) {
+                        instance.close();
+                    }
+                });
+            }
+
+            /**
+             * Build a custom listbox UI for a native select.
+             * @param {HTMLSelectElement} select Native select to enhance.
+             * @returns {{ close: () => void }}
+             */
+            function createCustomSelect(select) {
+                const shell = document.createElement("div");
+                shell.className = "select-shell";
+                shell.dataset.open = "false";
+
+                const trigger = document.createElement("button");
+                trigger.type = "button";
+                trigger.className = "select-trigger";
+                trigger.setAttribute("aria-haspopup", "listbox");
+                trigger.setAttribute("aria-expanded", "false");
+
+                const value = document.createElement("span");
+                value.className = "select-value";
+                trigger.append(value);
+
+                const popover = document.createElement("div");
+                popover.className = "select-popover";
+                popover.hidden = true;
+                popover.setAttribute("role", "listbox");
+
+                let highlightedIndex = Math.max(select.selectedIndex, 0);
+
+                /**
+                 * @returns {HTMLOptionElement[]}
+                 */
+                function getOptions() {
+                    return Array.from(select.options);
+                }
+
+                /**
+                 * @returns {void}
+                 */
+                function syncLabel() {
+                    const activeOption =
+                        select.options[select.selectedIndex] ??
+                        select.options[0];
+                    value.textContent = activeOption
+                        ? activeOption.textContent
+                        : "";
+                    trigger.setAttribute(
+                        "aria-label",
+                        `${select.name} ${value.textContent ?? ""}`.trim(),
+                    );
+                }
+
+                /**
+                 * @returns {void}
+                 */
+                function renderOptions() {
+                    const options = getOptions();
+                    popover.replaceChildren();
+
+                    options.forEach((option, index) => {
+                        const optionButton = document.createElement("button");
+                        optionButton.type = "button";
+                        optionButton.className = "select-option";
+                        optionButton.setAttribute("role", "option");
+                        optionButton.dataset.index = String(index);
+                        optionButton.dataset.selected = String(option.selected);
+                        optionButton.dataset.highlighted = String(
+                            index === highlightedIndex,
+                        );
+                        optionButton.textContent =
+                            option.textContent ?? option.value;
+                        optionButton.addEventListener("click", () => {
+                            select.selectedIndex = index;
+                            highlightedIndex = index;
+                            syncLabel();
+                            renderOptions();
+                            close();
+                            notifySelectChange(select);
+                        });
+                        popover.append(optionButton);
+                    });
+                }
+
+                /**
+                 * @returns {void}
+                 */
+                function open() {
+                    closeOtherSelects(api);
+                    highlightedIndex = Math.max(select.selectedIndex, 0);
+                    shell.dataset.open = "true";
+                    trigger.setAttribute("aria-expanded", "true");
+                    popover.hidden = false;
+                    renderOptions();
+                }
+
+                /**
+                 * @returns {void}
+                 */
+                function close() {
+                    shell.dataset.open = "false";
+                    trigger.setAttribute("aria-expanded", "false");
+                    popover.hidden = true;
+                }
+
+                /**
+                 * @param {number} delta Move amount.
+                 * @returns {void}
+                 */
+                function moveHighlight(delta) {
+                    const options = getOptions();
+                    const lastIndex = Math.max(options.length - 1, 0);
+                    highlightedIndex = Math.min(
+                        lastIndex,
+                        Math.max(0, highlightedIndex + delta),
+                    );
+                    renderOptions();
+                    const active = popover.querySelector(
+                        `[data-index="${highlightedIndex}"]`,
+                    );
+                    if (active) {
+                        active.scrollIntoView({ block: "nearest" });
+                    }
+                }
+
+                trigger.addEventListener("click", () => {
+                    if (shell.dataset.open === "true") {
+                        close();
+                        return;
+                    }
+                    open();
+                });
+
+                trigger.addEventListener("keydown", (event) => {
+                    if (event.key === "ArrowDown") {
+                        event.preventDefault();
+                        if (shell.dataset.open !== "true") open();
+                        moveHighlight(1);
+                    } else if (event.key === "ArrowUp") {
+                        event.preventDefault();
+                        if (shell.dataset.open !== "true") open();
+                        moveHighlight(-1);
+                    } else if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        if (shell.dataset.open !== "true") {
+                            open();
+                            return;
+                        }
+                        select.selectedIndex = highlightedIndex;
+                        syncLabel();
+                        renderOptions();
+                        close();
+                        notifySelectChange(select);
+                    } else if (event.key === "Escape") {
+                        close();
+                    }
+                });
+
+                select.addEventListener("change", () => {
+                    highlightedIndex = Math.max(select.selectedIndex, 0);
+                    syncLabel();
+                    renderOptions();
+                });
+
+                select.classList.add("native-select");
+                select.after(shell);
+                shell.append(trigger, popover);
+                syncLabel();
+                renderOptions();
+
+                const api = { close };
+                return api;
+            }
+
+            /**
+             * Upgrade supported selects to the custom demo UI.
+             * @returns {void}
+             */
+            function initializeCustomSelects() {
+                const selects = form.querySelectorAll(".js-enhance-select");
+                selects.forEach((select) => {
+                    customSelects.push(createCustomSelect(select));
+                });
+            }
+
+            /**
+             * Build recurrence rules from form values when enabled.
+             * @returns {Array<object> | undefined}
+             */
+            function buildRecurrenceRules() {
+                const recurring = form.elements.recurring.checked;
+                if (!recurring) return undefined;
+
+                const frequency = form.elements.frequency.value;
+                const interval = Number(form.elements.interval.value || "1");
+                const until = toLocalDateTime(form.elements.until.value);
+                const byDay = frequency === "weekly" ? readByDay() : [];
+
+                const rule = {
+                    frequency,
+                    interval,
+                };
+
+                if (until) {
+                    rule.until = until;
+                }
+
+                if (byDay.length > 0) {
+                    rule.byDay = byDay;
+                }
+
+                return [JsCal.RecurrenceRule(rule)];
+            }
+
+            /**
+             * Build either an Event or Task instance from the form.
+             * @returns {object}
+             */
+            function buildItem() {
+                const kind = form.elements.kind.value;
+                const title = form.elements.title.value.trim();
+                const description = form.elements.description.value.trim();
+                const start = toLocalDateTime(form.elements.start.value);
+                const timeZone = form.elements.timeZone.value.trim();
+                const recurrenceRules = buildRecurrenceRules();
+
+                const common = {
+                    title,
+                    description,
+                    start,
+                    timeZone: timeZone || undefined,
+                };
+
+                if (recurrenceRules) {
+                    common.recurrenceRules = recurrenceRules;
+                }
+
+                if (kind === "Event") {
+                    return new JsCal.Event({
+                        ...common,
+                        duration: form.elements.duration.value.trim() || "PT0S",
+                        status: form.elements.eventStatus.value,
+                    });
+                }
+
+                return new JsCal.Task({
+                    ...common,
+                    due: toLocalDateTime(form.elements.due.value),
+                    progress: form.elements.taskProgress.value,
+                });
+            }
+
+            /**
+             * Expand the current item within the configured range.
+             * @param {object} item JsCal instance to expand.
+             * @returns {Array<object>}
+             */
+            function expandItem(item) {
+                const from = toDate(form.elements.rangeFrom.value);
+                const to = toDate(form.elements.rangeTo.value);
+                return Array.from(JsCal.expandRecurrence([item], { from, to }));
+            }
+
+            /**
+             * Refresh the visible field groups for the selected kind.
+             * @returns {void}
+             */
+            function syncKindFields() {
+                const kind = form.elements.kind.value;
+                eventFields.classList.toggle("hidden", kind !== "Event");
+                taskFields.classList.toggle("hidden", kind !== "Task");
+            }
+
+            /**
+             * Build the object and refresh the JSON output.
+             * @returns {void}
+             */
+            function syncOutputs() {
+                try {
+                    currentItem = buildItem();
+                    const items = expandItem(currentItem);
+                    renderJson(currentItem.eject());
+                    occurrencesOutput.textContent = JSON.stringify(
+                        items,
+                        null,
+                        2,
+                    );
+                    icalOutput.textContent = JsCal.toICal([currentItem], {
+                        includeXJSCalendar: true,
+                    });
+                    clearStatus();
+                } catch (error) {
+                    const message =
+                        error instanceof Error ? error.message : String(error);
+                    renderErrorOutputs(message);
+                    setStatus(message, "error");
+                }
+            }
+
+            /**
+             * Schedule a live refresh after the current edit settles.
+             * @returns {void}
+             */
+            function queueSync() {
+                window.clearTimeout(syncTimer);
+                syncTimer = window.setTimeout(syncOutputs, 80);
+            }
+
+            form.addEventListener("change", () => {
+                syncKindFields();
+                queueSync();
+            });
+            form.addEventListener("input", queueSync);
+            document.addEventListener("pointerdown", (event) => {
+                customSelects.forEach((instance) => {
+                    const shell = event.target.closest(".select-shell");
+                    if (!shell || !shell.contains(event.target)) {
+                        instance.close();
+                    }
+                });
+            });
+
+            initializeCustomSelects();
+            initializeDefaultDates();
+            syncKindFields();
+            renderLoadingOutputs();
+            syncOutputs();
+        </script>
+    </body>
+</html>

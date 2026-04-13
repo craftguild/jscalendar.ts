@@ -32,8 +32,9 @@
 
 ## Time zone list
 
-- `src/timezones.ts` generated list (424 IANA zones).
-- `TimeZoneId` is a union of those literals.
+- `src/timezones.ts` keeps the 424 regional IANA zones in `RegionalTimeZones`.
+- `EtcTimeZones` and `GmtTimeZones` are maintained separately.
+- `TimeZoneId` is a union of all accepted literals.
 - `TimeZoneInput = TimeZoneId | Lowercase<TimeZoneId>`.
 
 ## Date/time handling

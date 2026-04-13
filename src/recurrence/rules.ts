@@ -47,6 +47,7 @@ export function expandRule(
     const results: string[] = [];
     let generated = 0;
     let cursor = start;
+    const anchorValue = formatLocalDateTime(start);
 
     while (generated < count) {
         const candidates = generateDateTimes(
@@ -61,6 +62,9 @@ export function expandRule(
         }
 
         for (const dt of filtered) {
+            if (compareDate(cursor, start) === 0 && dt < anchorValue) {
+                continue;
+            }
             generated += 1;
             if (generated > count) break;
             if (until && dt > until) return results;
