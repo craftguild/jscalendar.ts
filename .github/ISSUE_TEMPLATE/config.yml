@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+    - name: RFC 8984
+      url: https://www.rfc-editor.org/rfc/rfc8984
+      about: Reference specification for JSCalendar.
+    - name: RFC 5545
+      url: https://www.rfc-editor.org/rfc/rfc5545
+      about: Reference specification for iCalendar.

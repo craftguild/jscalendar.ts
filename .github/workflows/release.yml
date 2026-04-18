@@ -1,0 +1,61 @@
+name: Release
+
+on:
+    push:
+        branches:
+            - main
+
+permissions:
+    contents: write
+
+concurrency:
+    group: release-main
+    cancel-in-progress: false
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        if: "${{ !startsWith(github.event.head_commit.message, 'chore: prepare v') }}"
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10.33.0
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build
+              run: pnpm run build
+
+            - name: Test
+              run: pnpm test
+
+            - name: Bundle
+              run: pnpm run prepublish
+
+            - name: Configure git
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+            - name: Preview release
+              run: pnpm run release:dry-run
+
+            - name: Create release commit and tag
+              run: pnpm run release -- --no-verify
+
+            - name: Push release commit and tag
+              run: git push --follow-tags origin main
