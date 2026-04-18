@@ -1,5 +1,13 @@
 # Changelog
 
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+
+## [0.7.1](https://github.com/craftguild/jscalendar.ts/compare/v0.7.0...v0.7.1) (2026-04-18)
+
+### Bug Fixes
+
+- fold iCalendar lines by UTF-8 octet length ([a5b9eeb](https://github.com/craftguild/jscalendar.ts/commit/a5b9eeb49c0f5a01840ad475a91399fda515e8c2))
+
 ## 0.5.5
 
 - Fix: allow `expandRecurrencePaged` cursor to accept `undefined` under `exactOptionalPropertyTypes`.
