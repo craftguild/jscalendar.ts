@@ -218,7 +218,7 @@ describe("recurrence expansion", () => {
                 }),
                 range: {
                     from: new Date("2026-01-01"),
-                    to: new Date("2026-03-31"),
+                    to: new Date("2026-03-31T23:59:59"),
                 },
                 expected: ["2026-02-28T09:00:00", "2026-03-31T09:00:00"],
             },
@@ -469,7 +469,7 @@ describe("recurrence expansion", () => {
         const occ = collect(
             JsCal.expandRecurrence([event], {
                 from: new Date("2026-01-01"),
-                to: new Date("2026-03-31"),
+                to: new Date("2026-03-31T23:59:59"),
             }),
         );
 
@@ -497,7 +497,7 @@ describe("recurrence expansion", () => {
         const occ = collect(
             JsCal.expandRecurrence([event], {
                 from: new Date("2026-01-01"),
-                to: new Date("2026-03-31"),
+                to: new Date("2026-03-31T23:59:59"),
             }),
         );
 
@@ -526,7 +526,7 @@ describe("recurrence expansion", () => {
         const occ = collect(
             JsCal.expandRecurrence([event], {
                 from: new Date("2026-02-01"),
-                to: new Date("2026-03-31"),
+                to: new Date("2026-03-31T23:59:59"),
             }),
         );
 
@@ -551,7 +551,7 @@ describe("recurrence expansion", () => {
         const occ = collect(
             JsCal.expandRecurrence([event], {
                 from: new Date("2026-02-01"),
-                to: new Date("2026-03-31"),
+                to: new Date("2026-03-31T23:59:59"),
             }),
         );
 
