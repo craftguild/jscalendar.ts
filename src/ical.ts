@@ -17,6 +17,9 @@ const TYPE_EVENT = "Event";
 const TYPE_GROUP = "Group";
 const TYPE_TASK = "Task";
 const DEFAULT_PRODID = "-//craftguild//EN";
+const CONTENT_LINE_OCTETS = 75;
+const CONTINUATION_PREFIX = " ";
+const textEncoder = new TextEncoder();
 
 /**
  * Convert JSCalendar objects into an iCalendar string.
@@ -268,19 +271,43 @@ function escapeText(value: string): string {
 function foldLines(lines: string[]): string[] {
     const result: string[] = [];
     for (const line of lines) {
-        if (line.length <= 75) {
-            result.push(line);
-            continue;
-        }
-        let remaining = line;
-        result.push(remaining.slice(0, 75));
-        remaining = remaining.slice(75);
-        while (remaining.length > 0) {
-            result.push(` ${remaining.slice(0, 74)}`);
-            remaining = remaining.slice(74);
-        }
+        result.push(...foldLine(line));
     }
     return result;
+}
+
+/**
+ * Fold one iCalendar line to 75 octets without splitting code points.
+ * @param line Line to fold.
+ * @return Folded physical lines.
+ */
+function foldLine(line: string): string[] {
+    const result: string[] = [];
+    let current = "";
+    let limit = CONTENT_LINE_OCTETS;
+
+    for (const character of line) {
+        const next = `${current}${character}`;
+        if (current && getOctetLength(next) > limit) {
+            result.push(current);
+            current = `${CONTINUATION_PREFIX}${character}`;
+            limit = CONTENT_LINE_OCTETS;
+        } else {
+            current = next;
+        }
+    }
+
+    result.push(current);
+    return result;
+}
+
+/**
+ * Count UTF-8 octets in a string.
+ * @param value String to measure.
+ * @return UTF-8 octet length.
+ */
+function getOctetLength(value: string): number {
+    return textEncoder.encode(value).length;
 }
 
 /**
